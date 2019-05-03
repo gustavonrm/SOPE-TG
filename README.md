@@ -1,0 +1,3 @@
+# SOPE-Trab02
+
+LIES
