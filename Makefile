@@ -1,4 +1,4 @@
-TARGET = forensic
+TARGET = server #user criar para o user maybe 
 LIBS = -lm
 CC = gcc
 CFLAGS = -g -Wall -Wextra -Werror -I. -D_GNU_SOURCE
