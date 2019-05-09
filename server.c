@@ -25,20 +25,25 @@ int main (int argc, char *argv[]) {
     fprintf (stderr, "USAGE: %s <bank_offices> <password>\n", argv[0]);
     exit (ARG_ERR);
   }
-
+  
   //slog.txt
-  if ((fd = open (SERVER_LOGFILE, O_WRONLY|O_TRUNC|O_CREAT|O_EXCL, 0660)) == -1) {
+  fd = open (SERVER_LOGFILE, O_WRONLY|O_TRUNC|O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
+  if ( fd == -1) {
     exit (FILE_OPEN_ERR);
   }
-
+  
   //pass arguments
   if ((_bank_offices = atoi (argv[1])) > MAX_BANK_OFFICES) {
     _bank_offices = MAX_BANK_OFFICES;
   }
   strcpy(_password, argv[2]);
-
+  
   //#1 create admin acc
   create_bank_account (&admin_account, ADMIN_ACCOUNT_ID, 0, _password);
+  printf("SALT: %s\n", admin_account.salt);
+  printf("SALT_LENGTH: %ld\n", strlen(admin_account.salt));
+  printf("HASH: %s\n", admin_account.hash);
+  printf("HASH_LENGTH: %ld\n", strlen(admin_account.hash));
   logAccountCreation (fd, 0, &admin_account);
 
   //#2 create electronic banks

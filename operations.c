@@ -2,19 +2,19 @@
 
 //n sei se é suposto fazer ou usar o q é dado, mas da a sensacao que as logs e so pa comunicaçÃO
 int create_bank_account (bank_account_t *acc, uint32_t id, uint32_t balance, char password[]) {
-  char *saltedPass = NULL;
+  char saltedPass[SALT_LEN + HASH_LEN +1];
 
   //in case its admin
   if (id == ADMIN_ACCOUNT_ID && balance == 0) {
     acc->account_id = id;
     acc->balance = balance;
     gen_salt (acc -> salt);
-
-    strcat (saltedPass, acc -> salt);
+    
+    strcpy (saltedPass, acc -> salt);
     strcat (saltedPass, password);
-
+  
     get_hash(saltedPass, acc -> hash);
-
+    
     return 0;
   }
 
