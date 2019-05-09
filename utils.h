@@ -6,4 +6,4 @@
 #include <stdlib.h>
 #include <string.h>
 
-const char * gen_salt();
+void gen_salt (char *dst);

@@ -1,5 +1,3 @@
-#include "sope.h"
-
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -11,11 +9,15 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 
+#include "sope.h"
+
+
 static const char *OP_TYPE_STR[] = {
   [OP_CREATE_ACCOUNT] = "CREATE",
   [OP_BALANCE] = "BALANCE",
   [OP_TRANSFER] = "TRANSFER",
-  [OP_SHUTDOWN] = "SHUTDOWN"};
+  [OP_SHUTDOWN] = "SHUTDOWN"
+};
 
 static const char *RC_STR[] = {
   [RC_OK] = "OK",
@@ -29,7 +31,8 @@ static const char *RC_STR[] = {
   [RC_SAME_ID] = "SAME_ID",
   [RC_NO_FUNDS] = "NO_FUNDS",
   [RC_TOO_HIGH] = "TOO_HIGH",
-  [RC_OTHER] = "OTHER"};
+  [RC_OTHER] = "OTHER"
+};
 
 static const char *SYNC_MECH_STR[] = {
   [SYNC_OP_MUTEX_LOCK] = "MUTEX_LOCK",
@@ -39,12 +42,14 @@ static const char *SYNC_MECH_STR[] = {
   [SYNC_OP_COND_WAIT] = "COND_WAIT",
   [SYNC_OP_SEM_INIT] = "SEM_INIT",
   [SYNC_OP_SEM_POST] = "SEM_POST",
-  [SYNC_OP_SEM_WAIT] = "SEM_WAIT"};
+  [SYNC_OP_SEM_WAIT] = "SEM_WAIT"
+};
 
 static const char *SYNC_ROLE_STR[] = {
   [SYNC_ROLE_ACCOUNT] = "ACCOUNT",
   [SYNC_ROLE_CONSUMER] = "CONSUMER",
-  [SYNC_ROLE_PRODUCER] = "PRODUCER"};
+  [SYNC_ROLE_PRODUCER] = "PRODUCER"
+};
 
 static int atomicPrintf(int fd, const char *format, ...);
 
