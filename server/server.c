@@ -19,6 +19,7 @@ char  _password[MAX_PASSWORD_LEN];
 int  fd;
 int  sFifo;
 bank_account_t admin_account;
+bank_account_t user_account[MAX_BANK_ACCOUNTS];
 
 int main (int argc, char *argv[]) {
   if (argc != 3) {
