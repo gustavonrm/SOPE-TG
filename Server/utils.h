@@ -11,3 +11,4 @@
 void gen_salt (char *dst);
 
 void get_hash (char *str, char *dst);
+

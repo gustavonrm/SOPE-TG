@@ -2,7 +2,7 @@ TARGET = user
 LIBS = -lm
 
 CC = gcc
-CFLAGS = -g -Wall -Wextra -Werror -I. -D_GNU_SOURCE -pthread
+CFLAGS = -g -Wall -Wextra -Werror -I. -D_GNU_SOURCE -pthread -D_REENTRANT 
 LDFLAGS = -g -pthread
 
 

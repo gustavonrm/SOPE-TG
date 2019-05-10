@@ -2,8 +2,8 @@ TARGET = server
 LIBS = -lm
 
 CC = gcc
-CFLAGS = -g -Wall -Wextra -Werror -I. -D_GNU_SOURCE -pthread
-LDFLAGS = -g -pthread
+CFLAGS = -g -Wall -Wextra -Werror -I. -D_GNU_SOURCE -D_REENTRANT  -lpthread 
+LDFLAGS = -g -D_REENTRANT -lpthread
 
 
 .PHONY: default all clean

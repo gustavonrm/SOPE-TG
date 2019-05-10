@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <pthread.h>
+#include <semaphore.h>
 
 #include "constants.h"
 #include "error.h"
@@ -20,8 +21,19 @@ int  fd;
 int  sFifo;
 bank_account_t admin_account;
 bank_account_t user_account[MAX_BANK_ACCOUNTS];
+sem_t producer, consumer; 
+
+/////////////////////////////////
+void *PrintHello(void *arg)
+{
+   printf("thread #%ld!\n", pthread_self());
+   pthread_exit(arg);
+}
+/////////////////////////////////
+
 
 int main (int argc, char *argv[]) {
+  
   if (argc != 3) {
     fprintf (stderr, "USAGE: %s <bank_offices> <password>\n", argv[0]);
     exit (ARG_ERR);
@@ -33,20 +45,32 @@ int main (int argc, char *argv[]) {
     exit (FILE_OPEN_ERR);
   }
   
+  //IPC init
+  /*
+  sem_init(&consumer,0,0);
+  logSyncMechSem(fd,0,)
+  sem_init(&producer,0,0);
+  */
+
   //pass arguments
   if ((_bank_offices = atoi (argv[1])) > MAX_BANK_OFFICES) {
     _bank_offices = MAX_BANK_OFFICES;
   }
   strcpy(_password, argv[2]);
-  
+
+  pthread_t offices[_bank_offices+1];
+  offices[0]= pthread_self(); 
+
   //#1 create admin acc
   create_bank_account (&admin_account, ADMIN_ACCOUNT_ID, 0, _password);
-  logAccountCreation (fd, 0, &admin_account);
+  logAccountCreation (fd, 4, &admin_account);
 
   //#2 create electronic banks
-  for (int i=0; i < _bank_offices; i++) {
-    logBankOfficeOpen (fd, 0, pthread_self ());
+  for (int i=1; i < _bank_offices; i++) {
+    pthread_create(&offices[i],NULL,PrintHello,NULL); //TODO thread func
+    logBankOfficeOpen (fd, i, offices[i]);
   } 
+
 
   //#3 create FIFO /tmp/secure_srv
   if (mkfifo (SERVER_FIFO_PATH, 0660) != 0) {
