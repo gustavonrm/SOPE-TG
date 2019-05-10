@@ -40,10 +40,6 @@ int main (int argc, char *argv[]) {
   
   //#1 create admin acc
   create_bank_account (&admin_account, ADMIN_ACCOUNT_ID, 0, _password);
-  printf("SALT: %s\n", admin_account.salt);
-  printf("SALT_LENGTH: %ld\n", strlen(admin_account.salt));
-  printf("HASH: %s\n", admin_account.hash);
-  printf("HASH_LENGTH: %ld\n", strlen(admin_account.hash));
   logAccountCreation (fd, 0, &admin_account);
 
   //#2 create electronic banks

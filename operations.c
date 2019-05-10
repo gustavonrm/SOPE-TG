@@ -1,8 +1,7 @@
 #include "operations.h"
 
-//n sei se é suposto fazer ou usar o q é dado, mas da a sensacao que as logs e so pa comunicaçÃO
 int create_bank_account (bank_account_t *acc, uint32_t id, uint32_t balance, char password[]) {
-  char saltedPass[SALT_LEN + HASH_LEN +1];
+  char saltedPass[SALT_LEN + strlen (password) +1];
 
   //in case its admin
   if (id == ADMIN_ACCOUNT_ID && balance == 0) {
@@ -31,8 +30,13 @@ int create_bank_account (bank_account_t *acc, uint32_t id, uint32_t balance, cha
 
   acc->account_id = id;
   acc->balance = balance;
-  //acc->hash;
+
   gen_salt (acc -> salt);
+
+  strcpy (saltedPass, acc -> salt);
+  strcat (saltedPass, password);
+
+  get_hash (saltedPass, acc -> hash);
 
   return 0;
 }

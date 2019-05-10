@@ -1,7 +1,10 @@
 TARGET = server #user criar para o user maybe 
 LIBS = -lm
+
 CC = gcc
-CFLAGS = -g -Wall -Wextra -Werror -I. -D_GNU_SOURCE
+CFLAGS = -g -Wall -Wextra -Werror -I. -D_GNU_SOURCE -pthread
+LDFLAGS = -g -pthread
+
 
 .PHONY: default all clean
 
