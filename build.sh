@@ -3,23 +3,21 @@
 clear
 if [ "$1" = "clean" ]
 then 
-    cd server 
+    cd Server 
     make clean 
-    cd ..
-    cd user 
+    cd ../User 
     make clean 
-    cd ..
 fi
 
 
 if [ "$1" = "make" ]
 then 
-    cd server 
+    cd Server 
     make
-    cd ..
-    cd user 
+    mv server ..
+    cd ../User 
     make 
-    cd ..
+    mv user ..
 fi
 
 #$ ./build.sh clean ---- Limpa os ficheiros 
