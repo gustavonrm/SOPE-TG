@@ -19,22 +19,23 @@ int _bank_offices;
 char _password[MAX_PASSWORD_LEN];
 int fd;
 int sFifo;
+
+
 bank_account_t admin_account;
 bank_account_t user_account[MAX_BANK_ACCOUNTS];
+static pthread_t offices[];
+////IPC////
 sem_t producer, consumer;
-
-/////////////////////////////////
-void *PrintHello(void *arg)
-{
-  int *x = (int*)arg;
-  printf("thread #%ld!\n", pthread_self());
-  x++;
-  pthread_exit(0);
-}
-/////////////////////////////////
+sync_mech_op_t smo;
+sync_role_t role;
 
 int main(int argc, char *argv[])
 {
+  //TODO REMOVE LATER ONLY FOR TESTTING IN EARLIER STAGES 
+  if (unlink(SERVER_FIFO_PATH) != 0)
+  {
+    exit(UNLINK_ERR);
+  }
 
   if (argc != 3)
   {
@@ -49,12 +50,14 @@ int main(int argc, char *argv[])
     exit(FILE_OPEN_ERR);
   }
 
-  //IPC init
-  /*
-  sem_init(&consumer,0,0);
-  logSyncMechSem(fd,0,)
-  sem_init(&producer,0,0);
-  */
+  //IPC init ----- //TODO CHANGE WHEN IN IPC IMPLEMENTATION
+  smo = SYNC_OP_SEM_INIT;
+  role = SYNC_ROLE_CONSUMER;
+  sem_init(&consumer, 0, 0);
+  logSyncMechSem(fd, 0, smo, role, 1, 0);
+  sem_init(&producer, 0, 0);
+  role = SYNC_ROLE_PRODUCER;
+  logSyncMechSem(fd, 0, smo, role, 2, 0);
 
   //pass arguments
   if ((_bank_offices = atoi(argv[1])) > MAX_BANK_OFFICES)
@@ -72,7 +75,7 @@ int main(int argc, char *argv[])
   //#2 create electronic banks
   for (int i = 1; i <= _bank_offices; i++)
   {
-    pthread_create(&offices[i], NULL, PrintHello, NULL); //TODO thread func
+    pthread_create(&offices[i], NULL, bank_office_process, NULL); //TODO thread func
     logBankOfficeOpen(fd, i, offices[i]);
   }
 
@@ -88,15 +91,36 @@ int main(int argc, char *argv[])
   }
 
   //fifo echoing, pauses, logs
-  //#4 unlink fifo
+  //TODO CHECK FOR no pendent processes
+  while (1)
+  {
+    int tmpFifo; 
+    char USER_FIFO_NAME[USER_FIFO_PATH_LEN];
+    if((read(sFifo, "BUFFER",strlen("BUFFER"))) !=0) {
+      exit(FIFO_READ_ERR);
+    }
+    //process user fifo name
+    strcpy(USER_FIFO_NAME, USER_FIFO_PATH_PREFIX);
+    strcpy(USER_FIFO_NAME,"XXXXX"); //PID PASSED FROM THE FIFO 
+    if ((tmpFifo = open(USER_FIFO_NAME,O_WRONLY))!=0){
+      exit(FIFO_OPEN_ERR);
+    }
+    //thread do stuff 
+    if((write(tmpFifo,"BUFFER",strlen("BUFFER")))!=0){
+      exit(FIFO_WRITE_ERR);
+    }
+
+  }
 
   //program should only stop when all requests have been processed
+
+  //#4 unlink fifo - end server
   if (unlink(SERVER_FIFO_PATH) != 0)
   {
     exit(UNLINK_ERR);
   }
 
-  if(close(fd) !=0)
+  if (close(fd) != 0)
     exit(FILE_CLOSE_ERR);
 
   return 0;
