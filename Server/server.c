@@ -93,10 +93,11 @@ int main(int argc, char *argv[])
   //fifo echoing, pauses, logs
   //TODO CHECK FOR no pendent processes
   while (1)
-  {
+  { tlv_request_t tlv_request; 
+    tlv_reply_t tlv_reply; 
     int tmpFifo; 
     char USER_FIFO_NAME[USER_FIFO_PATH_LEN];
-    if((read(sFifo, "BUFFER",strlen("BUFFER"))) !=0) {
+    if((read(sFifo,&tlv_request,sizeof(tlv_request))) !=0) {
       exit(FIFO_READ_ERR);
     }
     //process user fifo name
@@ -106,7 +107,7 @@ int main(int argc, char *argv[])
       exit(FIFO_OPEN_ERR);
     }
     //thread do stuff 
-    if((write(tmpFifo,"BUFFER",strlen("BUFFER")))!=0){
+    if((write(tmpFifo,&tlv_reply,sizeof(tlv_reply)))!=0){
       exit(FIFO_WRITE_ERR);
     }
 
