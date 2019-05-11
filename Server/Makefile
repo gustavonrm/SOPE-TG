@@ -6,7 +6,6 @@ CFLAGS = -g -Wall -Wextra -Werror -I. -D_GNU_SOURCE -D_REENTRANT -pthread
 LDFLAGS = -g -D_REENTRANT -pthread
 TFLAGS= -lrt -D_REENTRANT -pthread
 
-
 .PHONY: default all clean
 
 default: $(TARGET)
