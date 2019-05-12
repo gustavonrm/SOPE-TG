@@ -1,4 +1,4 @@
-#include "utils.h"
+#include "srv_utils.h"
 
 void gen_salt (char *dst) {
   char salt[SALT_LEN +1];
