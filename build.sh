@@ -6,7 +6,10 @@ then
     cd Server 
     make clean 
     cd ../User 
-    make clean 
+    make clean
+    cd ..
+    rm server
+    rm user
 fi
 
 

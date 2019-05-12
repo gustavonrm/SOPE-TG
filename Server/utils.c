@@ -16,11 +16,11 @@ void get_hash (char *str, char *dst) {
   int pid;
   char buf [64 +1];
 
-  char cmd[SALT_LEN + strlen(str) + 8];
+  char cmd[SALT_LEN + strlen (str) + 8];
   strcpy (cmd, "echo -n ");
   strcat (cmd, str);
 
-  pipe(pipefd);
+  pipe (pipefd);
   pid = fork();
 
   if (pid == 0){
@@ -32,8 +32,8 @@ void get_hash (char *str, char *dst) {
     echo_proc = popen (cmd, "r");
     sha_proc = popen ("sha256sum", "w");
 
-    while (fgets(buf, 64, echo_proc) != NULL)
-      fprintf(sha_proc, "%s", buf);
+    while (fgets (buf, 64, echo_proc) != NULL)
+      fprintf (sha_proc, "%s", buf);
 
     pclose (echo_proc);
     pclose (sha_proc);
@@ -46,5 +46,5 @@ void get_hash (char *str, char *dst) {
     waitpid (pid, NULL, 0);
   }
   
-  strncat(dst, buf, 64);
+  strncat (dst, buf, 64);
 }

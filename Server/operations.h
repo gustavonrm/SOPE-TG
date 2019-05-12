@@ -9,9 +9,8 @@
 #include <string.h>
 #include <pthread.h>
 
-//deveria de haver uma maneira de se garantir q cada sal é exclusivo né?
+int create_bank_account (bank_account_t *acc,uint32_t id, uint32_t balance, char password[]);
 
-int create_bank_account(bank_account_t *acc,uint32_t id, uint32_t balance, char password[]);
-int create_bank_ofice();
+int create_bank_ofice ();
 
-void *bank_office_process(void *arg);
+void *bank_office_process (void *arg);
