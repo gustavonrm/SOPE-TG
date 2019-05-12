@@ -9,10 +9,10 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include "constants.h"
-#include "sope.h"
-#include "error.h"
-#include "types.h"
+#include "../Common/constants.h"
+#include "../Common/sope.h"
+#include "../Common/error.h"
+#include "../Common/types.h"
 
 void _print_usage(FILE *stream);
 int _parse_input(tlv_request_t *request, char *argv[]);

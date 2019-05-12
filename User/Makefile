@@ -11,7 +11,8 @@ TFLAGS= -lrt -D_REENTRANT -pthread
 default: $(TARGET)
 all: default
 
-OBJECTS = $(patsubst %.c, %.o, $(wildcard *.c))
+OBJECTS = $(patsubst %.c, %.o, $(wildcard *.c)) \
+	$(patsubst ../Common/%.c, ../Common/%.o, $(wildcard ../Common/*.c))
 HEADERS = $(wildcard *.h)
 
 %.o: %.c $(HEADERS)
@@ -25,6 +26,3 @@ $(TARGET): $(OBJECTS)
 clean:
 	-rm -f *.o
 	-rm -f $(TARGET)
-
-#Makefile adapted from stackoverflow with owner permition 
-#https://stackoverflow.com/questions/1484817/how-do-i-make-a-simple-makefile-for-gcc-on-linux	

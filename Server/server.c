@@ -8,9 +8,9 @@
 #include <pthread.h>
 #include <semaphore.h>
 
-#include "constants.h"
-#include "error.h"
-#include "sope.h"
+#include "../Common/constants.h"
+#include "../Common/error.h"
+#include "../Common/sope.h"
 #include "operations.h"
 
 #include "utils.h"

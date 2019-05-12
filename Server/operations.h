@@ -1,7 +1,7 @@
 #pragma once
 
-#include "types.h"
-#include "error.h"
+#include "../Common/types.h"
+#include "../Common/error.h"
 #include "utils.h"
 
 #include <stdio.h>
