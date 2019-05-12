@@ -18,9 +18,7 @@
 int _bank_offices;
 char _password[MAX_PASSWORD_LEN];
 int fd;
-int sFifo;
-
-
+int srvFifo;
 bank_account_t admin_account;
 bank_account_t user_account[MAX_BANK_ACCOUNTS];
 static pthread_t offices[];
@@ -31,7 +29,7 @@ sync_role_t role;
 
 int main(int argc, char *argv[])
 {
-  //TODO REMOVE LATER ONLY FOR TESTTING IN EARLIER STAGES 
+  //TODO REMOVE LATER ONLY FOR TESTTING IN EARLIER STAGES
   if (unlink(SERVER_FIFO_PATH) != 0)
   {
     exit(UNLINK_ERR);
@@ -85,7 +83,7 @@ int main(int argc, char *argv[])
     exit(MKFIFO_ERR);
   }
 
-  if ((sFifo = open(SERVER_FIFO_PATH, O_RDONLY)) == -1)
+  if ((srvFifo = open(SERVER_FIFO_PATH, O_RDONLY)) == -1)
   {
     exit(FIFO_OPEN_ERR);
   }
@@ -93,28 +91,32 @@ int main(int argc, char *argv[])
   //fifo echoing, pauses, logs
   //TODO CHECK FOR no pendent processes
   while (1)
-  { tlv_request_t tlv_request; 
-    tlv_reply_t tlv_reply; 
-    int tmpFifo; 
+  {
+    tlv_request_t request;
+    tlv_reply_t reply;
+
+    int tmpFifo;
     char USER_FIFO_NAME[USER_FIFO_PATH_LEN];
-    if((read(sFifo,&tlv_request,sizeof(tlv_request))) !=0) {
+    strcpy(USER_FIFO_NAME,USER_FIFO_PATH_PREFIX);
+    sprintf(USER_FIFO_NAME,"%d",request.value.header.pid);
+  
+    if ((read(srvFifo, &request, sizeof(request))) != 0)
+    {
       exit(FIFO_READ_ERR);
     }
     //process user fifo name
-    strcpy(USER_FIFO_NAME, USER_FIFO_PATH_PREFIX);
-    strcpy(USER_FIFO_NAME,"XXXXX"); //PID PASSED FROM THE FIFO 
-    if ((tmpFifo = open(USER_FIFO_NAME,O_WRONLY))!=0){
+    if ((tmpFifo = open(USER_FIFO_NAME, O_WRONLY)) != 0)
+    {
       exit(FIFO_OPEN_ERR);
     }
-    //thread do stuff 
-    if((write(tmpFifo,&tlv_reply,sizeof(tlv_reply)))!=0){
+    //thread do stuff
+    if ((write(tmpFifo, &reply, sizeof(reply))) != 0)
+    {
       exit(FIFO_WRITE_ERR);
     }
-
   }
 
   //program should only stop when all requests have been processed
-
   //#4 unlink fifo - end server
   if (unlink(SERVER_FIFO_PATH) != 0)
   {

@@ -37,6 +37,7 @@ void get_hash (char *str, char *dst) {
 
     pclose (echo_proc);
     pclose (sha_proc);
+    exit(0); //TODO SIMÃO CHECKA ISTO ASAP SFF XD - tens de terminar o filho senao tens processo em paralelo por isso e q tava a duplicar o slog.txt
 
   } else {
     close (pipefd[1]);

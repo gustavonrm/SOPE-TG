@@ -2,9 +2,9 @@ TARGET = user
 LIBS = -lm
 
 CC = gcc
-CFLAGS = -g -Wall -Wextra -Werror -I. -D_GNU_SOURCE -pthread -D_REENTRANT 
-LDFLAGS = -g -pthread
-
+CFLAGS = -g -Wall -Wextra -Werror -I. -D_GNU_SOURCE -D_REENTRANT -pthread 
+LDFLAGS = -g -D_REENTRANT -pthread
+TFLAGS= -lrt -D_REENTRANT -pthread
 
 .PHONY: default all clean
 
@@ -15,12 +15,12 @@ OBJECTS = $(patsubst %.c, %.o, $(wildcard *.c))
 HEADERS = $(wildcard *.h)
 
 %.o: %.c $(HEADERS)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $(TFLAGS) $< -o $@
 
 .PRECIOUS: $(TARGET) $(OBJECTS)
 
 $(TARGET): $(OBJECTS)
-	$(CC) $(OBJECTS) -Wall $(LIBS) -o $@
+	$(CC) $(OBJECTS) -Wall $(LIBS) $(TFLAGS) -o $@
 
 clean:
 	-rm -f *.o
