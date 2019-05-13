@@ -74,9 +74,9 @@ int main(int argc, char *argv[])
   //TODO CHECK FOR no pendent processes
   while (1) {
     tlv_request_t request;
-    tlv_reply_t reply;
+    //tlv_reply_t reply;
     int file_ret = 1;
-    int tmpFifo;
+    //int tmpFifo;
     char USER_FIFO_PATH[USER_FIFO_PATH_LEN];
    
     file_ret = read(srvFifo, &request, sizeof(request)); //fica constantemente a ler
@@ -95,12 +95,12 @@ int main(int argc, char *argv[])
       sprintf(USER_FIFO_PATH, "%s%d", USER_FIFO_PATH_PREFIX, request.value.header.pid);
 
       //process user fifo name
-      if ((tmpFifo = open(USER_FIFO_PATH, O_WRONLY)) != 0)
+      /*if ((tmpFifo = open(USER_FIFO_PATH, O_WRONLY)) != 0)
         exit(FIFO_OPEN_ERR);
 
       //thread do stuff
       if ((write(tmpFifo, &reply, sizeof(reply))) != 0)
-        exit(FIFO_WRITE_ERR);
+        exit(FIFO_WRITE_ERR);*/
     }
   
   }
