@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 {
 
   tlv_request_t request;
-  tlv_reply_t reply;
+  //tlv_reply_t reply;
   argv[1] = "";
   struct sigaction action;
 
@@ -50,14 +50,14 @@ int main(int argc, char *argv[])
     exit(FILE_OPEN_ERR);
 
   //create reply fifo
-  sprintf(USER_FIFO_PATH, "%s%d", USER_FIFO_PATH_PREFIX, getpid());
+  /*sprintf(USER_FIFO_PATH, "%s%d", USER_FIFO_PATH_PREFIX, getpid());
 
   if (mkfifo(USER_FIFO_PATH, 0660) != 0)
   {
     exit(MKFIFO_ERR);
-  }
+  }*/
 
-  if ((srvFifo = open(SERVER_FIFO_PATH, O_WRONLY | O_APPEND)) == -1)
+  if ((srvFifo = open(SERVER_FIFO_PATH, O_WRONLY)) == -1)
   {
     ret = RC_SRV_DOWN;
     exit(ret);
@@ -67,11 +67,10 @@ int main(int argc, char *argv[])
   if ((write(srvFifo, &request, sizeof(request))) != 0)
     exit(FIFO_READ_ERR);
   //erro ta aqui idk y
-
-  alarm(FIFO_TIMEOUT_SECS);
+  close (srvFifo);
 
   //receive reply
-  if ((usrFIFO = open(USER_FIFO_PATH, O_RDONLY)) == -1)
+  /*if ((usrFIFO = open(USER_FIFO_PATH, O_RDONLY)) == -1)
   {
     ret = RC_SRV_DOWN;
     exit(ret);
@@ -84,7 +83,7 @@ int main(int argc, char *argv[])
     exit(FILE_CLOSE_ERR);
 
   if ((unlink(USER_FIFO_PATH) != 0))
-    exit(UNLINK_ERR);
+    exit(UNLINK_ERR);*/
   
   return 0;
 }

@@ -75,24 +75,23 @@ int main(int argc, char *argv[])
   while (1) {
     tlv_request_t request;
     //tlv_reply_t reply;
-    int file_ret = 1;
+    int nBytesRead;
     //int tmpFifo;
-    char USER_FIFO_PATH[USER_FIFO_PATH_LEN];
+    //char USER_FIFO_PATH[USER_FIFO_PATH_LEN];
    
-    file_ret = read(srvFifo, &request, sizeof(request)); //fica constantemente a ler
+    nBytesRead = read (srvFifo, &request, sizeof (request)); //fica constantemente a ler
     
-    if (file_ret == -1)
+    if (nBytesRead == -1)
         printf("failed to receive\n");
-    if (file_ret == 0)
-    {
-      //exit(FILE_OPEN_ERR);
+    if (nBytesRead == 0) {
+      continue;
     }
-    if(sizeof(request)>0){
+    if (sizeof (request)>0) {
       printf("received message\n");
       printf ("TYPE: %d\n", request.type);
       printf ("PASS: %s\n", request.value.create.password);
       printf ("AMOUNT: %d\n", request.value.create.balance);
-      sprintf(USER_FIFO_PATH, "%s%d", USER_FIFO_PATH_PREFIX, request.value.header.pid);
+      //sprintf(USER_FIFO_PATH, "%s%d", USER_FIFO_PATH_PREFIX, request.value.header.pid);
 
       //process user fifo name
       /*if ((tmpFifo = open(USER_FIFO_PATH, O_WRONLY)) != 0)
@@ -102,7 +101,6 @@ int main(int argc, char *argv[])
       if ((write(tmpFifo, &reply, sizeof(reply))) != 0)
         exit(FIFO_WRITE_ERR);*/
     }
-  
   }
   
 
