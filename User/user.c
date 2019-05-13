@@ -14,7 +14,7 @@
 #include "../Common/error.h"
 #include "../Common/types.h"
 
-#include "ust_utils.h"
+#include "usr_utils.h"
 
 void _print_usage(FILE *stream);
 void _alarm_handler(int sig);
@@ -36,6 +36,8 @@ int main(int argc, char *argv[])
     exit (ARG_ERR);
   }
   
+  parse_input (&request, argv);
+
   //install handler
   action.sa_handler = _alarm_handler;
   sigemptyset(&action.sa_mask); //all signals are delivered
