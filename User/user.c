@@ -17,7 +17,6 @@
 #include "ust_utils.h"
 
 void _print_usage(FILE *stream);
-int _parse_input(tlv_request_t *request, char *argv[]);
 void _alarm_handler(int sig);
 
 ret_code_t ret;
@@ -32,14 +31,11 @@ int main(int argc, char *argv[])
   argv[1] = "";
   struct sigaction action;
 
-  if (argc != 6)
-  {
-    _print_usage(stderr);
-    exit(ARG_ERR);
+  if (argc != 6) {
+    _print_usage (stderr);
+    exit (ARG_ERR);
   }
-
-  parse_input(&request, argv);
-
+  
   //install handler
   action.sa_handler = _alarm_handler;
   sigemptyset(&action.sa_mask); //all signals are delivered
@@ -87,6 +83,8 @@ int main(int argc, char *argv[])
 
   if ((unlink(USER_FIFO_PATH) != 0))
     exit(UNLINK_ERR);
+  
+  return 0;
 }
 
 void _print_usage(FILE *stream)

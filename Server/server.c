@@ -72,10 +72,7 @@ int main(int argc, char *argv[])
 
   //fifo echoing, pauses, logs
   //TODO CHECK FOR no pendent processes
-  /*
-  while (1)
-  {
-  */
+  while (1) {
     tlv_request_t request;
     tlv_reply_t reply;
     int file_ret = 1;
@@ -92,6 +89,9 @@ int main(int argc, char *argv[])
     }
     if(sizeof(request)>0){
       printf("received message\n");
+      printf ("TYPE: %d\n", request.type);
+      printf ("PASS: %s\n", request.value.create.password);
+      printf ("AMOUNT: %d\n", request.value.create.balance);
       sprintf(USER_FIFO_PATH, "%s%d", USER_FIFO_PATH_PREFIX, request.value.header.pid);
 
       //process user fifo name
@@ -101,9 +101,7 @@ int main(int argc, char *argv[])
       //thread do stuff
       if ((write(tmpFifo, &reply, sizeof(reply))) != 0)
         exit(FIFO_WRITE_ERR);
-    /*
     }
-    */
   
   }
   
