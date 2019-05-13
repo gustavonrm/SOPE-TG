@@ -29,6 +29,7 @@ then
     cd ..
     cd ..
     cd ..
+    cd ..
     cd tmp
     rm secure_* && rm pipe_*
 fi
