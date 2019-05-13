@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
   /*
   while (1)
   {
-*/
+  */
     tlv_request_t request;
     tlv_reply_t reply;
     int file_ret = 1;
@@ -101,18 +101,21 @@ int main(int argc, char *argv[])
       //thread do stuff
       if ((write(tmpFifo, &reply, sizeof(reply))) != 0)
         exit(FIFO_WRITE_ERR);
+    /*
     }
-  /*
+    */
+  
   }
-  */
+  
 
   //program should only stop when all requests have been processed
   //#4 unlink fifo - end server
-  if (unlink(SERVER_FIFO_PATH) != 0)
-    exit(UNLINK_ERR);
 
   if (close(slogFd) != 0)
     exit(FILE_CLOSE_ERR);
+
+  if (unlink(SERVER_FIFO_PATH) != 0)
+    exit(UNLINK_ERR);
 
   return 0;
 }

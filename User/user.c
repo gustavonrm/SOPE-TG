@@ -21,6 +21,8 @@ int _parse_input(tlv_request_t *request, char *argv[]);
 void _alarm_handler(int sig);
 
 ret_code_t ret;
+char USER_FIFO_PATH[USER_FIFO_PATH_LEN];
+int ulog, srvFifo, usrFIFO;
 
 int main(int argc, char *argv[])
 {
@@ -28,9 +30,6 @@ int main(int argc, char *argv[])
   tlv_request_t request;
   tlv_reply_t reply;
   argv[1] = "";
-  int ulog, srvFifo, usrFIFO;
-  char USER_FIFO_PATH[USER_FIFO_PATH_LEN];
-  char str_pid[5];
   struct sigaction action;
 
   if (argc != 6)
@@ -60,7 +59,7 @@ int main(int argc, char *argv[])
     exit(MKFIFO_ERR);
   }
 
-  if ((srvFifo = open(SERVER_FIFO_PATH, O_WRONLY)) == -1)
+  if ((srvFifo = open(SERVER_FIFO_PATH, O_WRONLY | O_APPEND)) == -1)
   {
     ret = RC_SRV_DOWN;
     exit(ret);
@@ -68,15 +67,13 @@ int main(int argc, char *argv[])
 
   // Send to server
   if ((write(srvFifo, &request, sizeof(request))) != 0)
-      exit(FIFO_READ_ERR);
-    //erro ta aqui idk y 
- 
-  //receive reply
-  //program ends when reads from fifo or fifo timout pases 30s alarm?? yes
- 
+    exit(FIFO_READ_ERR);
+  //erro ta aqui idk y
+
   alarm(FIFO_TIMEOUT_SECS);
-  //da até aqui
-  if ((usrFIFO = open(USER_FIFO_PATH, O_RDONLY))  == -1)
+
+  //receive reply
+  if ((usrFIFO = open(USER_FIFO_PATH, O_RDONLY)) == -1)
   {
     ret = RC_SRV_DOWN;
     exit(ret);
@@ -85,11 +82,11 @@ int main(int argc, char *argv[])
     exit(FIFO_READ_ERR);
 
   //close
-  if ((unlink(strcat(SERVER_FIFO_PATH, str_pid))) != 0)
-    exit(UNLINK_ERR);
-
   if (close(ulog) != 0)
     exit(FILE_CLOSE_ERR);
+
+  if ((unlink(USER_FIFO_PATH) != 0))
+    exit(UNLINK_ERR);
 }
 
 void _print_usage(FILE *stream)
@@ -106,6 +103,12 @@ void _alarm_handler(int signo)
   int i = signo;
   i++; //we should probably remove -Werror flag.
   printf("alarm recieved\n");
+  //close
+  if (close(ulog) != 0)
+    exit(FILE_CLOSE_ERR);
+
+  if ((unlink(USER_FIFO_PATH) != 0))
+    exit(UNLINK_ERR);
   ret = RC_SRV_TIMEOUT;
   exit(ret);
 }
