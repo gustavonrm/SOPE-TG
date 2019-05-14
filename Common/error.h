@@ -12,3 +12,4 @@
 #define PIPE_OPEN_ERR 10
 #define FORK_ERR 11
 #define FIFO_CLOSE_ERR 12
+#define INVALID_INPUT_ERR 13

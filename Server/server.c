@@ -40,20 +40,18 @@ int main (int argc, char *argv[]) {
 
   int numOffices = atoi (argv[1]);
   if (numOffices > MAX_BANK_OFFICES)
-    numOffices = MAX_BANK_OFFICES;
+    return INVALID_INPUT_ERR;
 
   char adminPass[MAX_PASSWORD_LEN];
-
-  if(strlen(argv[2]) < MIN_PASSWORD_LEN || strlen(argv[2]) > MAX_PASSWORD_LEN)
-    return 230;
-  strcpy (adminPass, argv[2]);
 
   pthread_t offices[numOffices];
   offices[0] = pthread_self ();
 
   bank_account_t *admin_account;
   admin_account = malloc (sizeof(bank_account_t));
-  create_bank_account (admin_account, ADMIN_ACCOUNT_ID, 0, adminPass);
+  
+  if(create_bank_account (admin_account, ADMIN_ACCOUNT_ID, 0, adminPass) != 0)
+    return ACC_CREATE_ERR;
   logAccountCreation (slogFd, 00000, admin_account);
 
   int officePipe[numOffices +1][2];

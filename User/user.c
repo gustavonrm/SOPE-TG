@@ -26,8 +26,8 @@ int main (int argc, char *argv[]) {
     exit (ARG_ERR);
   }
   
-  if(argv[1] > MAX_BANK_ACCOUNTS)
-    return 231;
+  if(atoi(argv[1]) > MAX_BANK_ACCOUNTS)
+    return INVALID_INPUT_ERR;
 
   parse_input (&request, argv);
 
