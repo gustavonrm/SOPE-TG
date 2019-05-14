@@ -33,3 +33,6 @@
 
 #define FIFO_TIMEOUT_SECS 30
 
+#define	S_IRWUSR	(S_IRUSR|S_IWUSR)
+#define S_IRWGRP    (S_IRGRP|S_IWGRP)
+
