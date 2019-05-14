@@ -50,12 +50,12 @@ int main(int argc, char *argv[])
     exit(FILE_OPEN_ERR);
 
   //create reply fifo
-  /*sprintf(USER_FIFO_PATH, "%s%d", USER_FIFO_PATH_PREFIX, getpid());
+  sprintf(USER_FIFO_PATH, "%s%d", USER_FIFO_PATH_PREFIX, getpid());
 
   if (mkfifo(USER_FIFO_PATH, 0660) != 0)
   {
     exit(MKFIFO_ERR);
-  }*/
+  }
 
   if ((srvFifo = open(SERVER_FIFO_PATH, O_WRONLY)) == -1)
   {

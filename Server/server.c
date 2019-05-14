@@ -52,16 +52,15 @@ int main(int argc, char *argv[])
   offices[0] = pthread_self();
 
   //#1 create admin acc
-  create_bank_account(&admin_account, ADMIN_ACCOUNT_ID, 0, adminPass);
-  logAccountCreation(slogFd, 00000, &admin_account);
+  create_bank_account(&admin_account, ADMIN_ACCOUNT_ID, 0, adminPass,slogFd,0);
+  
 
   //#2 create electronic banks
-  for (int i = 1; i <= numOffices; i++)
+   for (int i = 1; i <= numOffices; i++)
   {
     pthread_create(&offices[i], NULL, bank_office_process, NULL); //TODO thread func
     logBankOfficeOpen(slogFd, i, offices[i]);
   }
-
   //#3 create FIFO /tmp/secure_srv
   if (mkfifo(SERVER_FIFO_PATH, 0660) != 0)
     exit(MKFIFO_ERR);
@@ -92,6 +91,8 @@ int main(int argc, char *argv[])
       printf ("PASS: %s\n", request.value.create.password);
       printf ("AMOUNT: %d\n", request.value.create.balance);
       //sprintf(USER_FIFO_PATH, "%s%d", USER_FIFO_PATH_PREFIX, request.value.header.pid);
+
+      
 
       //process user fifo name
       /*if ((tmpFifo = open(USER_FIFO_PATH, O_WRONLY)) != 0)
