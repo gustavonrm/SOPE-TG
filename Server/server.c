@@ -51,8 +51,6 @@ int main (int argc, char *argv[]) {
 
   bank_account_t *admin_account;
   admin_account = malloc (sizeof(bank_account_t));
-  char adminPass[MAX_PASSWORD_LEN];
-  strcpy(adminPass, argv[2]);
   
   if(create_bank_account (admin_account, ADMIN_ACCOUNT_ID, 0, adminPass) != 0)
     return ACC_CREATE_ERR;
