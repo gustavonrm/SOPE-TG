@@ -71,10 +71,12 @@ int main (int argc, char *argv[]) {
 
   //fifo echoing, pauses, logs
   //TODO CHECK FOR no pendent processes
+  bank_account_t user_account[MAX_BANK_ACCOUNTS];
   while (1) {
     tlv_request_t request;
     //tlv_reply_t reply;
     int nBytesRead;
+    int i = 0;
     //int tmpFifo;
     //char USER_FIFO_PATH[USER_FIFO_PATH_LEN];
    
@@ -84,6 +86,24 @@ int main (int argc, char *argv[]) {
         printf ("failed to receive\n");
     if (nBytesRead == 0)
       continue;
+
+    switch(request.type){
+      case OP_CREATE_ACCOUNT:
+        if(create_bank_account (&user_account[i], request.value.create.account_id, request.value.create.balance, request.value.create.password) != 0)
+          return 2;
+        logAccountCreation (slogFd, request.value.create.account_id, &user_account[i]);
+        i++;
+        break;
+      case OP_BALANCE:
+        break;
+      case OP_TRANSFER:
+        break;
+      case OP_SHUTDOWN:
+        break;
+      case __OP_MAX_NUMBER:
+        break;
+
+    }
 
     if (sizeof (request)>0) {
       printf ("received message\n");
