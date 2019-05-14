@@ -61,7 +61,6 @@ int main (int argc, char *argv[]) {
     pthread_create (&offices[i], NULL, bank_office_process, &(officePipe[i])); //TODO thread func
     logBankOfficeOpen (slogFd, i, offices[i]);
   }
-
   //#3 create FIFO /tmp/secure_srv
   if (mkfifo (SERVER_FIFO_PATH, 0660) != 0)
     exit (MKFIFO_ERR);
@@ -93,6 +92,8 @@ int main (int argc, char *argv[]) {
       printf ("AMOUNT: %d\n", request.value.create.balance);
       //sprintf(USER_FIFO_PATH, "%s%d", USER_FIFO_PATH_PREFIX, request.value.header.pid);
 
+      
+
       //process user fifo name
       /*if ((tmpFifo = open(USER_FIFO_PATH, O_WRONLY)) != 0)
         exit(FIFO_OPEN_ERR);
@@ -105,7 +106,7 @@ int main (int argc, char *argv[]) {
 
   _cleanHouse (srvFifo, slogFd);
   free (admin_account);
-  
+
   return 0;
 }
 

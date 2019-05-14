@@ -1,6 +1,7 @@
 #include "operations.h"
 
-int create_bank_account (bank_account_t *acc, uint32_t id, uint32_t balance, char password[]) {
+int create_bank_account (bank_account_t *acc, uint32_t id, uint32_t balance, char password[],int slogFd, int logID) {
+
   if (strlen(password) < MIN_PASSWORD_LEN || strlen(password) > MAX_PASSWORD_LEN)
     return ACC_CREATE_ERR;
 
@@ -26,9 +27,48 @@ int create_bank_account (bank_account_t *acc, uint32_t id, uint32_t balance, cha
   strcat (saltedPass, password);
 
   get_hash (saltedPass, acc->hash);
-  
+
+  logAccountCreation(slogFd, logID, acc);
+
   return 0;
 }
+
+ret_code_t transfer_between_accounts(bank_account_t *src, bank_account_t *dest, uint32_t ammount){
+  
+  ret_code_t ret = RC_OK; 
+  uint32_t  new_src_balance = src->balance - ammount;
+  uint32_t  new_dest_balance = dest->balance + ammount;
+
+  ///errors
+  if(src->account_id == 0)
+    return ret=RC_OP_NALLOW;
+
+  //CHECK ALL ACCOUNTS IF ACC DONEST EXIST RET = ID_NOT_FOUND
+
+  if(src->account_id == dest->account_id)
+    return ret= RC_SAME_ID;
+
+  if(new_src_balance<MIN_BALANCE)
+    return ret = RC_NO_FUNDS;
+
+  if(new_dest_balance>MAX_BALANCE)
+    return ret=RC_TOO_HIGH;
+  
+
+  if(dest->account_id<1 || dest->account_id>= MAX_BANK_ACCOUNTS ){
+    return ret=RC_OTHER;
+  }
+
+  if(ammount < 1 || ammount > MAX_BALANCE){
+    return ret=RC_OTHER;
+  }
+  //proceed opperation 
+  src->balance -= ammount; 
+  dest->balance += ammount;
+
+  return ret; 
+}
+
 //////////////////THREADS///////////////////////
 void *bank_office_process (void *arg) {
   int *x = (int *)arg;
