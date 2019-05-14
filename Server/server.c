@@ -15,15 +15,16 @@
 #include "operations.h"
 #include "srv_utils.h"
 
-void _cleanHouse (int srvFifo, int slogFd);
+void _cleanUp (int srvFifo, int slogFd);
 
 int main (int argc, char *argv[]) {
+  
   if (argc != 3) {
     fprintf (stderr, "USAGE: %s <bank_offices> <password>\n", argv[0]);
     exit (ARG_ERR);
   }
 
-  int slogFd = open (SERVER_LOGFILE, O_WRONLY | O_TRUNC | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
+  int slogFd = open (SERVER_LOGFILE, O_WRONLY | O_TRUNC | O_CREAT, S_IRWUSR | S_IRGRP | S_IROTH);
   if (slogFd == -1)
     exit (FILE_OPEN_ERR);
 
@@ -62,7 +63,7 @@ int main (int argc, char *argv[]) {
     logBankOfficeOpen (slogFd, i, offices[i]);
   }
   
-  if (mkfifo (SERVER_FIFO_PATH, 0660) != 0)
+  if (mkfifo (SERVER_FIFO_PATH, S_IRWUSR|S_IRWGRP) != 0)
     exit (MKFIFO_ERR);
 
   int srvFifo = open (SERVER_FIFO_PATH, O_RDONLY);
@@ -95,13 +96,13 @@ int main (int argc, char *argv[]) {
     readFifo (srvFifo);
   }
 
-  _cleanHouse (srvFifo, slogFd);
+  _cleanUp (srvFifo, slogFd);
   free (admin_account);
 
   return 0;
 }
 
-void _cleanHouse (int srvFifo, int slogFd) {
+void _cleanUp (int srvFifo, int slogFd) {
   if (close (srvFifo))
     exit (FIFO_CLOSE_ERR);
   if (unlink (SERVER_FIFO_PATH) != 0)
