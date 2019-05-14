@@ -49,32 +49,28 @@ void get_hash (char *str, char *hash) {
   strncat (hash, buf, 64);
 }
 
-void readRequest (int srvFifo) {
-  
+int readFifo (int srvFifo) {
   int nBytes = 0;
 
-  while (1){
+  while (1) {
     tlv_request_t request;
 
     nBytes = read (srvFifo, &request, sizeof (op_type_t) + sizeof(uint32_t));
-    if (nBytes == -1) {
-      perror ("Error reading request type and length");
-      return ;
-    }
-
-    nBytes = read (srvFifo, &request.value, request.length);
-    if (nBytes == -1) {
-      perror ("Error reading request value");
-      return ;
-    }
+    if (nBytes == -1)
+      exit (FIFO_READ_ERR);
 
     if (nBytes == 0)
       break;
 
-    printf ("L: %d\n", request.length);
-    printf ("T: %d\n", request.type);
-    printf ("Id: %d\n", request.value.create.account_id);
-    printf ("Bl: %d\n", request.value.create.balance);
-    printf ("Ps: %s\n", request.value.create.password);
+    nBytes = read (srvFifo, &request.value, request.length);
+    if (nBytes == -1)
+      exit (FIFO_READ_ERR);
+
+    if (nBytes == 0)
+      break;
+
+    // Adicionar request a uma fila
   }
+
+  return 0;
 }

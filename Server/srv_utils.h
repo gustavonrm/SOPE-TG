@@ -8,9 +8,10 @@
 
 #include "../Common/constants.h"
 #include "../Common/types.h"
+#include "../Common/error.h"
 
 void gen_salt (char *salt);
 
 void get_hash (char *str, char *hash);
 
-void readRequest (int srvFifo);
+int readFifo (int srvFifo);

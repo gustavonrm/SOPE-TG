@@ -38,9 +38,9 @@ int main (int argc, char *argv[]) {
     exit(FILE_OPEN_ERR);
 
   ret = writeToFifo (request);
-  if (ret != 0) {
+  if (ret != 0)
     printf ("Error: %s\n", ret == FIFO_OPEN_ERR ? "Opening server fifo" : "Writing to fifo");
-  }
+    
   logRequest (ulogFd, getpid(), &request);
 
   //create reply fifo

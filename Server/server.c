@@ -92,7 +92,7 @@ int main (int argc, char *argv[]) {
     }
   */
   while (1) {
-    readRequest (srvFifo);
+    readFifo (srvFifo);
   }
 
   _cleanHouse (srvFifo, slogFd);
