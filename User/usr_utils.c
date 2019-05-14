@@ -42,21 +42,14 @@ int parse_input (tlv_request_t *request, char *argv[]) {
   return 0;
 }
 
-int sendRequest (tlv_request_t request, int uLog) {
-  logRequest (uLog, getpid(), &request);
-
-  printf ("L: %d\n", request.length);
+int writeToFifo (tlv_request_t request) {
   int srvFifo = open (SERVER_FIFO_PATH, O_WRONLY | O_NONBLOCK);
-  if (srvFifo == -1) {
-    perror ("Error opening server fifo!");
-    return -1;
-  }
+  if (srvFifo == -1)
+    return FIFO_OPEN_ERR;
 
   int nBytes = write (srvFifo, &request, sizeof (op_type_t) + sizeof (uint32_t) + request.length);
-  if (nBytes == -1) {
-    perror ("Error sending request to server");
-    return -1;
-  }
+  if (nBytes == -1)
+    return FIFO_WRITE_ERR;
 
   close (srvFifo);
   

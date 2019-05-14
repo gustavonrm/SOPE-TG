@@ -20,13 +20,14 @@ void _print_usage (FILE *stream);
 
 int main (int argc, char *argv[]) {
   tlv_request_t request;
+  int ret;
 
   if (argc != 6) {
     _print_usage (stderr);
     exit (ARG_ERR);
   }
   
-  if(argv[1] > MAX_BANK_ACCOUNTS)
+  if(atoi(argv[1]) > MAX_BANK_ACCOUNTS)
     return 231;
 
   parse_input (&request, argv);
@@ -36,24 +37,25 @@ int main (int argc, char *argv[]) {
   if (ulogFd == -1)
     exit(FILE_OPEN_ERR);
 
-  sendRequest (request, ulogFd);
+  ret = writeToFifo (request);
+  if (ret != 0) {
+    printf ("Error: %s\n", ret == FIFO_OPEN_ERR ? "Opening server fifo" : "Writing to fifo");
+  }
+  logRequest (ulogFd, getpid(), &request);
 
-  close (ulogFd);
   //create reply fifo
   /*sprintf(USER_FIFO_PATH, "%s%d", USER_FIFO_PATH_PREFIX, getpid());
 
   if (mkfifo(USER_FIFO_PATH, 0660) != 0)
-  {
     exit(MKFIFO_ERR);
-  }*/
 
   //receive reply
-  /*if ((usrFIFO = open(USER_FIFO_PATH, O_RDONLY)) == -1)
-  {
+  if ((usrFIFO = open (USER_FIFO_PATH, O_RDONLY)) == -1) {
     ret = RC_SRV_DOWN;
     exit(ret);
   }
-  if ((read(usrFIFO, &reply, sizeof(reply))) != 0)
+
+  if ((read (usrFIFO, &reply, sizeof (reply))) != 0)
     exit(FIFO_READ_ERR);
 
   //close
@@ -62,6 +64,9 @@ int main (int argc, char *argv[]) {
 
   if ((unlink(USER_FIFO_PATH) != 0))
     exit(UNLINK_ERR);*/
+  
+
+  close (ulogFd);
   
   return 0;
 }
