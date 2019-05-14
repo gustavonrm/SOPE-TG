@@ -1,8 +1,10 @@
 #include "operations.h"
 
 int create_bank_account (bank_account_t *acc, uint32_t id, uint32_t balance, char password[]) {
-  if (strlen (password) < MIN_PASSWORD_LEN || strlen (password) > MAX_PASSWORD_LEN)
+  if (strlen (password) < MIN_PASSWORD_LEN || strlen (password) > MAX_PASSWORD_LEN){
+    printf ("%s\n", password);
     return ACC_CREATE_ERR;
+  }
 
   char saltedPass[SALT_LEN + strlen (password) + 1];
 
@@ -11,8 +13,10 @@ int create_bank_account (bank_account_t *acc, uint32_t id, uint32_t balance, cha
     acc->balance = balance;
   } else {
     if (id < 1 || id >= MAX_BANK_ACCOUNTS || 
-      balance < MIN_BALANCE || balance > MAX_BALANCE)
-     return ACC_CREATE_ERR; 
+      balance < MIN_BALANCE || balance > MAX_BALANCE){
+        printf ("ERROR HERE 2\n");
+        return ACC_CREATE_ERR; 
+      }
   }
 
   acc->account_id = id;

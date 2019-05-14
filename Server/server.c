@@ -46,6 +46,8 @@ int main (int argc, char *argv[]) {
   offices[0] = pthread_self ();
 
   char adminPass[MAX_PASSWORD_LEN];
+  strcpy (adminPass, argv[2]);
+
   bank_account_t *admin_account;
   admin_account = malloc (sizeof(bank_account_t));
   
