@@ -46,6 +46,9 @@ int main (int argc, char *argv[]) {
   pthread_t offices[numOffices];
   offices[0] = pthread_self ();
 
+  char adminPass[MAX_PASSWORD_LEN];
+  strcpy (adminPass, argv[2]);
+
   bank_account_t *admin_account;
   admin_account = malloc (sizeof(bank_account_t));
   char adminPass[MAX_PASSWORD_LEN];
@@ -61,7 +64,6 @@ int main (int argc, char *argv[]) {
     pthread_create (&offices[i], NULL, bank_office_process, &(officePipe[i])); //TODO thread func
     logBankOfficeOpen (slogFd, i, offices[i]);
   }
-
   
   if (mkfifo (SERVER_FIFO_PATH, S_IRWUSR|S_IRWGRP) != 0)
     exit (MKFIFO_ERR);
@@ -91,8 +93,8 @@ int main (int argc, char *argv[]) {
     case __OP_MAX_NUMBER:
       break;
     }
-*/
-  while (1){
+  */
+  while (1) {
     readRequest (srvFifo);
   }
 

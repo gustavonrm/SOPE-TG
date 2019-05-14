@@ -10,9 +10,10 @@
 
 #include "../Common/types.h"
 #include "../Common/sope.h"
+#include "../Common/error.h"
 
 int parse_input (tlv_request_t *request, char *argv[]);
 
-int sendRequest (tlv_request_t request, int uLog);
+int writeToFifo (tlv_request_t request);
 
 #endif
