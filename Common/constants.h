@@ -36,3 +36,5 @@
 #define	S_IRWUSR	(S_IRUSR|S_IWUSR)
 #define S_IRWGRP    (S_IRGRP|S_IWGRP)
 
+#define READ 0
+#define WRITE 1
