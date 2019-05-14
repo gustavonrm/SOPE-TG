@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <wait.h>
 
-void gen_salt (char *dst);
+void gen_salt (char *salt);
 
-void get_hash (char *str, char *dst);
+void get_hash (char *str, char *hash);
 

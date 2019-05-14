@@ -15,8 +15,7 @@
 #include "operations.h"
 #include "srv_utils.h"
 
-bank_account_t admin_account;
-bank_account_t user_account[MAX_BANK_ACCOUNTS];
+void _cleanHouse (int srvFifo, int slogFd);
 
 int main (int argc, char *argv[]) {
   if (argc != 3) {
@@ -50,8 +49,10 @@ int main (int argc, char *argv[]) {
   offices[0] = pthread_self ();
 
   //#1 create admin acc
-  create_bank_account (&admin_account, ADMIN_ACCOUNT_ID, 0, adminPass);
-  logAccountCreation (slogFd, 00000, &admin_account);
+  bank_account_t *admin_account;
+  admin_account = malloc (sizeof(admin_account));
+  create_bank_account (admin_account, ADMIN_ACCOUNT_ID, 0, adminPass);
+  logAccountCreation (slogFd, 00000, admin_account);
 
   //#2 create electronic banks
   int officePipe[numOffices +1][2];
@@ -101,14 +102,19 @@ int main (int argc, char *argv[]) {
         exit(FIFO_WRITE_ERR);*/
     }
   }
-  
-  //program should only stop when all requests have been processed
-  //#4 unlink fifo - end server
-  if (close (slogFd) != 0)
-    exit (FILE_CLOSE_ERR);
 
+  _cleanHouse (srvFifo, slogFd);
+  free (admin_account);
+  
+  return 0;
+}
+
+void _cleanHouse (int srvFifo, int slogFd) {
+  if (close (srvFifo))
+    exit (FIFO_CLOSE_ERR);
   if (unlink (SERVER_FIFO_PATH) != 0)
     exit (UNLINK_ERR);
 
-  return 0;
+  if (close (slogFd) != 0)
+    exit (FILE_CLOSE_ERR);
 }

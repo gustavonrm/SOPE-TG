@@ -1,17 +1,18 @@
 #include "srv_utils.h"
 
-void gen_salt (char *dst) {
-  char salt[SALT_LEN +1];
+void gen_salt (char *salt) {
+  char nSalt[SALT_LEN +1];
+  static char charSet[] = "0123456789abcdef";
 
-  for (int i = 0; i < SALT_LEN; i++) {
-    salt[i] = "0123456789abcdef" [random () % 16];
-  }
-  salt[SALT_LEN] = '\0';
+  for (int i = 0; i < SALT_LEN; i++)
+    nSalt[i] = charSet[rand() % (int)(sizeof(charSet) -1)];
 
-  strcpy (dst, salt);
+  nSalt[SALT_LEN] = '\0';
+  
+  strcpy (salt, nSalt);
 }
 
-void get_hash (char *str, char *dst) {
+void get_hash (char *str, char *hash) {
   int pipefd[2];
   int pid;
   char buf [64 +1];
@@ -46,5 +47,5 @@ void get_hash (char *str, char *dst) {
     waitpid (pid, NULL, 0);
   }
   
-  strncat (dst, buf, 64);
+  strncat (hash, buf, 64);
 }

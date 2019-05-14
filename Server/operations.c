@@ -18,13 +18,15 @@ int create_bank_account (bank_account_t *acc, uint32_t id, uint32_t balance, cha
   acc->account_id = id;
   acc->balance = balance;
 
-  gen_salt (acc->salt);
+  char salt[SALT_LEN +1];
+  gen_salt (salt);
+  sprintf (acc -> salt, "%s", salt);
 
   strcpy (saltedPass, acc->salt);
   strcat (saltedPass, password);
 
   get_hash (saltedPass, acc->hash);
-
+  
   return 0;
 }
 //////////////////THREADS///////////////////////

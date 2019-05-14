@@ -11,3 +11,4 @@
 #define ACC_CREATE_ERR 9
 #define PIPE_OPEN_ERR 10
 #define FORK_ERR 11
+#define FIFO_CLOSE_ERR 12
