@@ -28,7 +28,7 @@ int main (int argc, char *argv[]) {
   }
   
   if(atoi(argv[1]) > MAX_BANK_ACCOUNTS)
-    return 231;
+    return INVALID_INPUT_ERR;
 
   parse_input (&request, argv);
 
@@ -67,7 +67,7 @@ int main (int argc, char *argv[]) {
   
 
   close (ulogFd);
-  
+
   return 0;
 }
 
