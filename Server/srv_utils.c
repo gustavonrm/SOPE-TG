@@ -50,6 +50,7 @@ void get_hash (char *str, char *hash) {
 }
 
 void readRequest (int srvFifo) {
+  
   int nBytes = 0;
 
   while (1){

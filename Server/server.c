@@ -43,13 +43,16 @@ int main (int argc, char *argv[]) {
     numOffices = MAX_BANK_OFFICES;
 
   char adminPass[MAX_PASSWORD_LEN];
+
+  if(strlen(argv[2]) < MIN_PASSWORD_LEN || strlen(argv[2]) > MAX_PASSWORD_LEN)
+    return 230;
   strcpy (adminPass, argv[2]);
 
   pthread_t offices[numOffices];
   offices[0] = pthread_self ();
 
   bank_account_t *admin_account;
-  admin_account = malloc (sizeof(admin_account));
+  admin_account = malloc (sizeof(bank_account_t));
   create_bank_account (admin_account, ADMIN_ACCOUNT_ID, 0, adminPass);
   logAccountCreation (slogFd, 00000, admin_account);
 
@@ -68,21 +71,7 @@ int main (int argc, char *argv[]) {
   if (srvFifo == -1)
     exit (FIFO_OPEN_ERR);
 
-  /*while (1) {
-    tlv_request_t request;
-    //tlv_reply_t reply;
-    int nBytesRead;
-    //int i = 0;
-    //int tmpFifo;
-    //char USER_FIFO_PATH[USER_FIFO_PATH_LEN];
-   
-    nBytesRead = read (srvFifo, &request, sizeof (request));
-    
-    if (nBytesRead == -1)
-        printf ("failed to receive\n");
-    if (nBytesRead == 0)
-      continue;
-
+  /*
     switch (request.type) {
     case OP_CREATE_ACCOUNT:
       if (create_bank_account (&user_account[i], request.value.create.account_id, request.value.create.balance, request.value.create.password) != 0)
@@ -103,24 +92,7 @@ int main (int argc, char *argv[]) {
     case __OP_MAX_NUMBER:
       break;
     }
-
-    if (sizeof (request)>0) {
-      printf ("received message\n");
-      printf ("TYPE: %d\n", request.type);
-      printf ("PASS: %s\n", request.value.create.password);
-      printf ("AMOUNT: %d\n", request.value.create.balance);
-      //sprintf(USER_FIFO_PATH, "%s%d", USER_FIFO_PATH_PREFIX, request.value.header.pid);
-
-      //process user fifo name
-      if ((tmpFifo = open(USER_FIFO_PATH, O_WRONLY)) != 0)
-        exit(FIFO_OPEN_ERR);
-
-      //thread do stuff
-      if ((write(tmpFifo, &reply, sizeof(reply))) != 0)
-        exit(FIFO_WRITE_ERR);
-    }
-  }*/
-
+*/
   while (1){
     readRequest (srvFifo);
   }

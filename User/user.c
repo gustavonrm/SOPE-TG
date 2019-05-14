@@ -26,6 +26,9 @@ int main (int argc, char *argv[]) {
     exit (ARG_ERR);
   }
   
+  if(argv[1] > MAX_BANK_ACCOUNTS)
+    return 231;
+
   parse_input (&request, argv);
 
   int ulogFd;
