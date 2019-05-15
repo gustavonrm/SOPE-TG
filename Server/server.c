@@ -25,7 +25,7 @@ sem_t empty, full;
 pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 
 bank_account_t accounts[MAX_BANK_ACCOUNTS];
-bank_account_t *admin_account;
+bank_account_t admin_account;
 int acc_index = 0;
 
 //logs
@@ -57,15 +57,10 @@ int main (int argc, char *argv[]) {
   role = SYNC_ROLE_PRODUCER;
   logSyncMechSem (slogFd, 0, smo, role, 0, 0);
 
-  char adminPass[MAX_PASSWORD_LEN];
-  strcpy (adminPass, argv[2]);
-
-  admin_account = malloc (sizeof (bank_account_t));
-
-  if (create_bank_account (admin_account, ADMIN_ACCOUNT_ID, 0, adminPass) != 0)
+  if (create_bank_account (&admin_account, ADMIN_ACCOUNT_ID, 0, argv[2]) != 0)
     return ACC_CREATE_ERR;
   //accounts[0] = admin_account;
-  logAccountCreation (slogFd, 00000, admin_account);
+  logAccountCreation (slogFd, 0000, &admin_account);
 
   int officePipe[numOffices + 1][2];
   for (int i = 1; i <= numOffices; i++) {
@@ -92,9 +87,8 @@ int main (int argc, char *argv[]) {
   }
 
   _cleanUp (srvFifo, slogFd);
-  free (admin_account);
 
-  return 0;
+  return 0;  
 }
 
 void _cleanUp (int srvFifo, int slogFd) {
@@ -136,8 +130,8 @@ void *bank_office_process (void *officePipe) {
     
     switch (request.type) {
     case OP_CREATE_ACCOUNT:
-      if (verifyIfAdmin (admin_account, request.value.create.account_id,  request.value.create.balance, request.value.create.password) != 0)
-        return -1; // Retorna para o usr pelo fifo o tlv reply a dizer OP_NALLOW
+      if (verifyIfAdmin (&admin_account, request.value.create.account_id,  request.value.create.balance, request.value.create.password) != 0)
+        // Retorna para o usr pelo fifo o tlv reply a dizer OP_NALLOW
       if (create_bank_account (&accounts[acc_index++], request.value.create.account_id, request.value.create.balance, request.value.create.password) != 0)
         return (int *)2; //?????
       logAccountCreation (slogFd, request.value.create.account_id, &accounts[acc_index]);
@@ -151,8 +145,8 @@ void *bank_office_process (void *officePipe) {
       break;
 
     case OP_SHUTDOWN:
-      if (verifyIfAdmin (admin_account, request.value.create.account_id,  request.value.create.balance, request.value.create.password) != 0)
-        return -1; // Retorna para o usr pelo fifo o tlv reply a dizer OP_NALLOW
+      if (verifyIfAdmin (&admin_account, request.value.create.account_id,  request.value.create.balance, request.value.create.password) != 0)
+        // Retorna para o usr pelo fifo o tlv reply a dizer OP_NALLOW
       pthread_exit (0);
       break;
 
