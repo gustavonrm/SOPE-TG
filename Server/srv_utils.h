@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <wait.h>
 #include <pthread.h>
+#include <mqueue.h>
 
 #include "../Common/constants.h"
 #include "../Common/types.h"
@@ -15,6 +16,6 @@ void gen_salt (char *salt);
 
 void get_hash (char *str, char *hash);
 
-int readFifo (int srvFifo);
+int readFifo (int srvFifo,mqd_t mq);
 
 

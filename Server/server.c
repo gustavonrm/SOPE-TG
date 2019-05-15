@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <mqueue.h>
 
 #include "../Common/constants.h"
 #include "../Common/error.h"
@@ -21,6 +22,16 @@ void *bank_office_process(void *officePipe);
 ////////GLOBAL/////////
 int slogFd;
 
+mqd_t mq;
+struct mq_attr attrp;
+//mq_getattr(mq,&attrp);
+
+//atrr.mq_flags = 0;                           // blocking read/write
+/*
+atrr.mq_maxmsg = MAX_QUEUE_LEN;              // maximum number of messages allowed in queue
+attr.mq_msgsize = sizeof(tlv_request_t);     // messages are contents of an int
+attr.mq_curmsgs = 0;                         // number of messages currently in queue
+*/
 sem_t empty, full;
 pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 
@@ -51,6 +62,12 @@ int main(int argc, char *argv[])
   pthread_t offices[numOffices];
   offices[0] = pthread_self();
 
+  mq = mq_open("/mqueue", O_RDWR | O_CREAT, 0660, NULL); //TODO need to create the struct
+  if (mq == -1)
+  {
+    printf("Error opening mQ\n");
+  }
+
   // IPC init
   // TODO CHANGE WHEN IN IPC IMPLEMENTATION
   sem_init(&empty, 0, numOffices);
@@ -73,7 +90,7 @@ int main(int argc, char *argv[])
   int officePipe[numOffices + 1][2];
   for (int i = 1; i <= numOffices; i++)
   {
-    pipe(officePipe[i]);
+    pipe(officePipe[i]);                                                      //TODO substitute with msgQ
     pthread_create(&offices[i], NULL, bank_office_process, &(officePipe[i])); //TODO thread func
     logBankOfficeOpen(slogFd, i, offices[i]);
   }
@@ -90,7 +107,9 @@ int main(int argc, char *argv[])
     //IPC should be inside read i think
     sem_wait(&empty);
     pthread_mutex_lock(&mut);
-    readFifo(srvFifo);
+
+    readFifo(srvFifo,mq); // TODO tem de receber o pipe e comunicar
+    
     sem_post(&full);
   }
 
@@ -130,13 +149,17 @@ void *bank_office_process(void *officePipe)
     sem_wait(&full);
     pthread_mutex_lock(&mut);
 
+    printf("thread %ld working\n",pthread_self());
     //2#receive
-    read(pipe_fd[READ], &request, sizeof(request));
-    
+    if (read(pipe_fd[READ], &request, sizeof(request)) == 0)
+      printf("pipe received\n");
+    if (mq_receive(mq, (char *)&request, sizeof(request), NULL) == 0)
+      printf("mq received\n");
+
     //fifo name
     sprintf(USER_FIFO_PATH, "%s%d", USER_FIFO_PATH_PREFIX, getpid());
     tmpFifo = open(USER_FIFO_PATH, O_WRONLY | O_NONBLOCK);
-    
+
     switch (request.type)
     {
     case OP_CREATE_ACCOUNT:
@@ -144,12 +167,11 @@ void *bank_office_process(void *officePipe)
       if (create_bank_account(&accounts[acc_index++], request.value.create.account_id, request.value.create.balance, request.value.create.password) != 0)
         return (int *)2;
       logAccountCreation(slogFd, request.value.create.account_id, &accounts[acc_index]);
-      write(tmpFifo,&reply,sizeof(reply));
+      write(tmpFifo, &reply, sizeof(reply));
       break;
     case OP_BALANCE: //checked on user
       break;
     case OP_TRANSFER:
-
       break;
     case OP_SHUTDOWN:
       //do smth to end all processes and stuff
@@ -162,6 +184,7 @@ void *bank_office_process(void *officePipe)
     //3# IPC
     pthread_mutex_unlock(&mut);
     sem_post(&empty);
+    printf("thread %ld ended\n",pthread_self());
   }
   printf("thread #%ld!\n", pthread_self());
 }

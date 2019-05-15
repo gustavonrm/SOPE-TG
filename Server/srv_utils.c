@@ -54,10 +54,11 @@ void get_hash(char *str, char *hash)
   strncat(hash, buf, 64);
 }
 
-int readFifo(int srvFifo)
+int readFifo(int srvFifo,mqd_t mq)
 {
   int nBytes = 0;
-
+  mqd_t i =mq;
+  i++;
   while (1)
   {
     tlv_request_t request;
@@ -68,13 +69,19 @@ int readFifo(int srvFifo)
 
     if (nBytes == 0)
       break;
-    
     nBytes = read(srvFifo, &request.value, request.length);
+    if(nBytes >0){
+      printf("request received\n");
+     /* if( (mq_send(mq,(const char *)&request,sizeof(request),0)) == 0)
+        printf("message sent\n");*/
+        break; 
+    }
     if (nBytes == -1)
       exit(FIFO_READ_ERR);
 
-    if (nBytes == 0)
+    if (nBytes == 0){
       break;
+    }
 
     // Adicionar request a uma fila
   }
