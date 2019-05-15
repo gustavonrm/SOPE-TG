@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 
   for (int i = 1; i <= numOffices; i++)
   {
-    pthread_create(&offices[i], NULL, bank_office_process, NULL); //TODO thread func
+    pthread_create(&offices[i], NULL, bank_office_process, (void*) &i); //TODO thread func
     logBankOfficeOpen(slogFd, i, offices[i]);
   }
 
@@ -152,29 +152,29 @@ void *bank_office_process(void *arg)
 {
   printf("thread #%ld!\n", pthread_self());
   //ele implica com o arg por causa do -Werror
-  int *i = (int *)arg;
-  i++;
+  int index = (*(int *)arg);
   while (1)
   {
     tlv_request_t request;
     tlv_reply_t reply;
     char USER_FIFO_PATH[USER_FIFO_PATH_LEN];
 
-    printf("estou a funcionar\n");
     //log
     smo = SYNC_OP_COND_WAIT;
     sem_getvalue(&full, &sem_val);
-    logSyncMechSem(slogFd, 0, smo, crole, getpid(), sem_val);
+    logSyncMechSem(slogFd, index, smo, crole, getpid(), sem_val);
     //1# IPC
     sem_wait(&full);
     //log
     smo = SYNC_OP_MUTEX_LOCK;
-    logSyncMech(slogFd, 0, smo, prole, getpid());
+    logSyncMech(slogFd, index, smo, prole, getpid());
     //ipc
     pthread_mutex_lock(&mut);
-    //2#receive
+    //2#receive -- CRITICAL REGION  
     request = queuePop();
-    //print_request(request);
+    //apos acessar conta!!!! atraso
+    delay(request);
+    logDelay(slogFd,index,request.value.header.op_delay_ms); //logSyncDelay()???
     //fifo name
     sprintf(USER_FIFO_PATH, "%s%d", USER_FIFO_PATH_PREFIX, request.value.header.pid);
 
@@ -226,13 +226,13 @@ void *bank_office_process(void *arg)
     pthread_mutex_unlock(&mut);
     //log
     smo = SYNC_OP_MUTEX_UNLOCK;
-    logSyncMech(slogFd, 0, smo, crole, getpid());
+    logSyncMech(slogFd, index, smo, crole, getpid());
     //IPC
     sem_post(&empty);
     //log
     smo = SYNC_OP_SEM_POST;
     sem_getvalue(&empty, &sem_val);
-    logSyncMechSem(slogFd, 0, smo, crole, getpid(), sem_val);
+    logSyncMechSem(slogFd, index, smo, crole, getpid(), sem_val);
   }
 
   printf("thread #%ld!\n", pthread_self());

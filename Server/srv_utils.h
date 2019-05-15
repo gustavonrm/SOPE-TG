@@ -47,5 +47,7 @@ tlv_reply_t makeReply(tlv_request_t *request, uint32_t data);
 
 tlv_reply_t makeErrorReply(tlv_request_t *request, enum ret_code ret);
 
+void delay(tlv_request_t request);
+
 void print_request(tlv_request_t request);
 
