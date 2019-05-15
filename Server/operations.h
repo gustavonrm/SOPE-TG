@@ -12,6 +12,5 @@
 
 int create_bank_account (bank_account_t *acc,uint32_t id, uint32_t balance, char password[]);
 
-//tranfer 
 ret_code_t transfer_between_accounts (bank_account_t *src, bank_account_t *dest, uint32_t ammount);
 

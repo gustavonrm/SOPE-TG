@@ -1,47 +1,36 @@
 #include "operations.h"
 
-int create_bank_account(bank_account_t *acc, uint32_t id, uint32_t balance, char password[])
-{
-  if (strlen(password) < MIN_PASSWORD_LEN || strlen(password) > MAX_PASSWORD_LEN)
-  {
-    printf("%s\n", password);
+int create_bank_account (bank_account_t *acc, uint32_t id, uint32_t balance, char password[]) {
+  if (strlen (password) < MIN_PASSWORD_LEN || strlen (password) > MAX_PASSWORD_LEN)
     return ACC_CREATE_ERR;
-  }
 
-  char saltedPass[SALT_LEN + strlen(password) + 1];
+  char saltedPass[SALT_LEN + strlen (password) + 1];
 
-  if (id == ADMIN_ACCOUNT_ID && balance == 0)
-  {
+  if (id == ADMIN_ACCOUNT_ID && balance == 0) {
     acc->account_id = id;
     acc->balance = balance;
-  }
-  else
-  {
+  } else {
     if (id < 1 || id >= MAX_BANK_ACCOUNTS ||
-        balance < MIN_BALANCE || balance > MAX_BALANCE)
-    {
-      printf("ERROR HERE 2\n");
-      return ACC_CREATE_ERR;
-    }
+      balance < MIN_BALANCE || balance > MAX_BALANCE)
+        return ACC_CREATE_ERR;
   }
 
   acc->account_id = id;
   acc->balance = balance;
 
   char salt[SALT_LEN + 1];
-  gen_salt(salt);
-  sprintf(acc->salt, "%s", salt);
+  gen_salt (salt);
+  sprintf (acc->salt, "%s", salt);
 
-  strcpy(saltedPass, acc->salt);
-  strcat(saltedPass, password);
+  strcpy (saltedPass, acc->salt);
+  strcat (saltedPass, password);
 
-  get_hash(saltedPass, acc->hash);
+  get_hash (saltedPass, acc->hash);
 
   return 0;
 }
 
-ret_code_t transfer_between_accounts(bank_account_t *src, bank_account_t *dest, uint32_t ammount){
-
+ret_code_t transfer_between_accounts (bank_account_t *src, bank_account_t *dest, uint32_t ammount){
   ret_code_t ret = RC_OK;
   uint32_t new_src_balance = src->balance - ammount;
   uint32_t new_dest_balance = dest->balance + ammount;
@@ -51,7 +40,7 @@ ret_code_t transfer_between_accounts(bank_account_t *src, bank_account_t *dest, 
     return ret = RC_OP_NALLOW;
 
   //CHECK ALL ACCOUNTS IF ACC DONEST EXIST RET = ID_NOT_FOUND
-
+  
   if (src->account_id == dest->account_id)
     return ret = RC_SAME_ID;
 

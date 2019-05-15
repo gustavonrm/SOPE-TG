@@ -13,7 +13,7 @@ int parse_input (tlv_request_t *request, char *argv[]) {
   case OP_CREATE_ACCOUNT:
     type = OP_CREATE_ACCOUNT;
     value.create.account_id = (uint32_t)atoi (strtok (argv[5], " "));
-    value.create.balance = (uint32_t)atoi (strtok(NULL, " "));
+    value.create.balance = (uint32_t)atoi (strtok (NULL, " "));
     strcpy (value.create.password, strtok (NULL, " "));
     break;
 

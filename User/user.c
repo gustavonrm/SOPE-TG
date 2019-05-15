@@ -33,14 +33,14 @@ int main (int argc, char *argv[]) {
     exit (ARG_ERR);
   }
   
-  if(atoi(argv[1]) > MAX_BANK_ACCOUNTS)
+  if (atoi(argv[1]) > MAX_BANK_ACCOUNTS)
     return INVALID_INPUT_ERR;
 
   parse_input (&request, argv);
 
   ulogFd = open (USER_LOGFILE, O_WRONLY | O_CREAT | O_APPEND, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
   if (ulogFd == -1)
-    exit(FILE_OPEN_ERR);
+    exit (FILE_OPEN_ERR);
 
   ret = writeToFifo (request);
   if (ret != 0)
@@ -49,30 +49,29 @@ int main (int argc, char *argv[]) {
   logRequest (ulogFd, getpid(), &request);
 
   //create reply fifo
-  sprintf(USER_FIFO_PATH, "%s%d", USER_FIFO_PATH_PREFIX, getpid());
+  sprintf (USER_FIFO_PATH, "%s%d", USER_FIFO_PATH_PREFIX, getpid ());
 
-  if (mkfifo(USER_FIFO_PATH, 0660) != 0)
-    exit(MKFIFO_ERR);
+  if (mkfifo (USER_FIFO_PATH, 0660) != 0)
+    exit (MKFIFO_ERR);
 
-  alarm(FIFO_TIMEOUT_SECS);
+  alarm (FIFO_TIMEOUT_SECS);
 
   //receive reply
   if ((usrFIFO = open (USER_FIFO_PATH, O_RDONLY)) == -1) {
     ret = RC_SRV_DOWN;
-    exit(ret);
+    exit (ret);
   }
 
   if ((read (usrFIFO, &reply, sizeof (reply))) != 0)
-    exit(FIFO_READ_ERR);
+    exit (FIFO_READ_ERR);
 
   //close
-  if (close(ulogFd) != 0)
-    exit(FILE_CLOSE_ERR);
+  if (close (ulogFd) != 0)
+    exit (FILE_CLOSE_ERR);
 
-  if ((unlink(USER_FIFO_PATH) != 0))
-    exit(UNLINK_ERR);
+  if ((unlink (USER_FIFO_PATH) != 0))
+    exit (UNLINK_ERR);
   
-
   close (ulogFd);
 
   return 0;
@@ -89,7 +88,7 @@ void _print_usage (FILE *stream) {
 void _alarm_handler (int signo) {
   int i = signo;
   i++; //we should probably remove -Werror flag.
-  printf("alarm recieved\n");
+  printf ("alarm recieved\n");
   //close
   if (close (ulogFd) != 0)
     exit (FILE_CLOSE_ERR);
@@ -97,5 +96,5 @@ void _alarm_handler (int signo) {
   if ((unlink (USER_FIFO_PATH) != 0))
     exit (UNLINK_ERR);
 
-  exit(RC_SRV_TIMEOUT);
+  exit (RC_SRV_TIMEOUT);
 } 
