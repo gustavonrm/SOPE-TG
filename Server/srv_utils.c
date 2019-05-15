@@ -123,3 +123,12 @@ void queueDelete () {
     requestQueue.head = aux;
   }
 }
+
+tlv_reply_t makeReply(int code, tlv_request_t request){
+  tlv_reply_t reply;
+
+  reply.length=request.length;
+  reply.type=request.type;
+
+  return reply;
+}

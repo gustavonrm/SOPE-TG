@@ -134,9 +134,9 @@ void *bank_office_process (void *officePipe) {
     
     switch (request.type) {
     case OP_CREATE_ACCOUNT:
-      //bank account needs to chek if is admin who asked for it
+      //bank account needs to check if is admin who asked for it
       if (create_bank_account (&accounts[acc_index++], request.value.create.account_id, request.value.create.balance, request.value.create.password) != 0)
-        return (int *)2;
+        return (int *)2; //?????
       logAccountCreation (slogFd, request.value.create.account_id, &accounts[acc_index]);
       write (tmpFifo,&reply,sizeof (reply));
       break;

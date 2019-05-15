@@ -34,3 +34,5 @@ void queuePush (tlv_request_t request);
 tlv_request_t queuePop ();
 
 void queueDelete ();
+
+tlv_reply_t makeReply(int code, tlv_request_t request)
