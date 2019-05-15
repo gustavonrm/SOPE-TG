@@ -24,7 +24,7 @@ char USER_FIFO_PATH[USER_FIFO_PATH_LEN];
 
 int main (int argc, char *argv[]) {
   tlv_request_t request;
-  tlv_request_t reply;
+  tlv_reply_t reply;
   int usrFIFO;
   int ret;
 
@@ -64,6 +64,7 @@ int main (int argc, char *argv[]) {
 
   if ((read (usrFIFO, &reply, sizeof (reply))) != 0)
     exit (FIFO_READ_ERR);
+ 
 
   //close
   if (close (ulogFd) != 0)
