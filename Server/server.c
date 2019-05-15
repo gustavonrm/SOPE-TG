@@ -25,6 +25,7 @@ sem_t empty, full;
 pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 
 bank_account_t accounts[MAX_BANK_ACCOUNTS];
+bank_account_t *admin_account;
 int acc_index = 0;
 
 //logs
@@ -33,8 +34,8 @@ sync_role_t role = SYNC_ROLE_CONSUMER;
 
 int main (int argc, char *argv[]) {
   if (argc != 3) {
-    fprintf(stderr, "USAGE: %s <bank_offices> <password>\n", argv[0]);
-    exit(ARG_ERR);
+    fprintf (stderr, "USAGE: %s <bank_offices> <password>\n", argv[0]);
+    exit (ARG_ERR);
   }
 
   slogFd = open (SERVER_LOGFILE, O_WRONLY | O_TRUNC | O_CREAT, S_IRWUSR | S_IRGRP | S_IROTH);
@@ -59,7 +60,6 @@ int main (int argc, char *argv[]) {
   char adminPass[MAX_PASSWORD_LEN];
   strcpy (adminPass, argv[2]);
 
-  bank_account_t *admin_account;
   admin_account = malloc (sizeof (bank_account_t));
 
   if (create_bank_account (admin_account, ADMIN_ACCOUNT_ID, 0, adminPass) != 0)
@@ -86,6 +86,8 @@ int main (int argc, char *argv[]) {
     sem_wait (&empty);
     pthread_mutex_lock (&mut);
     readFifo (srvFifo);
+    // Detetar thread vago
+    // Escrever para o pipe desse thread
     sem_post (&full);
   }
 
@@ -129,16 +131,17 @@ void *bank_office_process (void *officePipe) {
     read (pipe_fd[READ], &request, sizeof (request));
     
     //fifo name
-    sprintf (USER_FIFO_PATH, "%s%d", USER_FIFO_PATH_PREFIX, getpid ());
+    sprintf (USER_FIFO_PATH, "%s%d", USER_FIFO_PATH_PREFIX, request.value.header.pid);
     tmpFifo = open (USER_FIFO_PATH, O_WRONLY | O_NONBLOCK);
     
     switch (request.type) {
     case OP_CREATE_ACCOUNT:
-      //bank account needs to chek if is admin who asked for it
+      if (verifyIfAdmin (admin_account, request.value.create.account_id,  request.value.create.balance, request.value.create.password) != 0)
+        return -1; // Retorna para o usr pelo fifo o tlv reply a dizer OP_NALLOW
       if (create_bank_account (&accounts[acc_index++], request.value.create.account_id, request.value.create.balance, request.value.create.password) != 0)
         return (int *)2;
       logAccountCreation (slogFd, request.value.create.account_id, &accounts[acc_index]);
-      write (tmpFifo,&reply,sizeof (reply));
+      write (tmpFifo, &reply, sizeof (reply));
       break;
 
     case OP_BALANCE: //checked on user
@@ -148,7 +151,8 @@ void *bank_office_process (void *officePipe) {
       break;
 
     case OP_SHUTDOWN:
-      //do smth to end all processes and stuff
+      if (verifyIfAdmin (admin_account, request.value.create.account_id,  request.value.create.balance, request.value.create.password) != 0)
+        return -1; // Retorna para o usr pelo fifo o tlv reply a dizer OP_NALLOW
       pthread_exit (0);
       break;
 

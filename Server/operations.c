@@ -62,3 +62,19 @@ ret_code_t transfer_between_accounts (bank_account_t *src, bank_account_t *dest,
 
   return ret;
 }
+
+int verifyIfAdmin (bank_account_t *admin, uint32_t id, uint32_t balance, char password[]) {
+  if (id != ADMIN_ACCOUNT_ID || balance != 0)
+    return -1;
+  
+  char saltedPass[SALT_LEN + MAX_PASSWORD_LEN];
+
+  strcpy (saltedPass, admin ->salt);
+  strcat (saltedPass, password);
+
+  char hash[HASH_LEN];
+
+  get_hash (saltedPass, hash);
+
+  return strncmp (admin -> hash, hash, 64);
+}
