@@ -16,7 +16,7 @@
 #include "srv_utils.h"
 
 void _cleanUp (int srvFifo, int slogFd);
-void *bank_office_process (void *officePipe);
+void *bank_office_process (void *arg);
 
 ////////GLOBAL/////////
 int slogFd;
@@ -26,6 +26,8 @@ pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 
 bank_account_t accounts[MAX_BANK_ACCOUNTS];
 int acc_index = 0;
+
+queue_t requests; 
 
 //logs
 sync_mech_op_t smo = SYNC_OP_SEM_INIT;
@@ -69,8 +71,7 @@ int main (int argc, char *argv[]) {
 
   int officePipe[numOffices + 1][2];
   for (int i = 1; i <= numOffices; i++) {
-    pipe (officePipe[i]);
-    pthread_create (&offices[i], NULL, bank_office_process, &(officePipe[i])); //TODO thread func
+    pthread_create (&offices[i], NULL, bank_office_process,NULL); //TODO thread func
     logBankOfficeOpen (slogFd, i, offices[i]);
   }
 
@@ -109,10 +110,7 @@ void _cleanUp (int srvFifo, int slogFd) {
 }
 
 //////////////////THREADS///////////////////////
-void *bank_office_process (void *officePipe) {
-  int *pipe_fd = (int *)officePipe;
-  close (pipe_fd[WRITE]);
-
+void *bank_office_process (void *arg) {
   printf ("thread #%ld!\n", pthread_self());
 
   while (1) {
@@ -124,12 +122,10 @@ void *bank_office_process (void *officePipe) {
     //1# IPC
     sem_wait (&full);
     pthread_mutex_lock (&mut);
-
     //2#receive
-    read (pipe_fd[READ], &request, sizeof (request));
-    
+    request = queuePop(); 
     //fifo name
-    sprintf (USER_FIFO_PATH, "%s%d", USER_FIFO_PATH_PREFIX, getpid ());
+    sprintf (USER_FIFO_PATH, "%s%d", USER_FIFO_PATH_PREFIX, request.value.header.pid);
     tmpFifo = open (USER_FIFO_PATH, O_WRONLY | O_NONBLOCK);
     
     switch (request.type) {
