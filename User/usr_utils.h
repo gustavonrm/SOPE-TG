@@ -18,4 +18,6 @@ int writeToFifo (tlv_request_t request);
 
 tlv_reply_t readFifo(int tmpFifo);
 
+void print_reply(tlv_reply_t reply);
+
 #endif

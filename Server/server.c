@@ -27,12 +27,14 @@ pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 bank_account_t accounts[MAX_BANK_ACCOUNTS];
 bank_account_t admin_account;
 int acc_index = 0;
-
+int sem_val;
 queue_t requests;
 
 //logs
 sync_mech_op_t smo = SYNC_OP_SEM_INIT;
-sync_role_t role = SYNC_ROLE_CONSUMER;
+sync_role_t crole = SYNC_ROLE_CONSUMER;
+sync_role_t prole = SYNC_ROLE_PRODUCER;
+sync_role_t arole = SYNC_ROLE_ACCOUNT;
 
 int main(int argc, char *argv[])
 {
@@ -55,11 +57,10 @@ int main(int argc, char *argv[])
 
   // IPC init
   // TODO CHANGE WHEN IN IPC IMPLEMENTATION
-  sem_init(&empty, 0, numOffices);
+  logSyncMechSem(slogFd, 0, smo, prole, getpid(), 0);
   sem_init(&full, 0, 0);
-  logSyncMechSem(slogFd, 0, smo, role, numOffices, 0);
-  role = SYNC_ROLE_PRODUCER;
-  logSyncMechSem(slogFd, 0, smo, role, 0, 0);
+  logSyncMechSem(slogFd, 0, smo, prole, getpid(), numOffices);
+  sem_init(&empty, 0, numOffices);
 
   if (create_bank_account(&admin_account, ADMIN_ACCOUNT_ID, 0, argv[2]) != 0)
     return ACC_CREATE_ERR;
@@ -81,12 +82,10 @@ int main(int argc, char *argv[])
 
   while (1)
   {
-
-    int nBytes = 0;
-
     while (1)
     {
       tlv_request_t request;
+      int nBytes = 0;
 
       nBytes = read(srvFifo, &request, sizeof(op_type_t) + sizeof(uint32_t));
       if (nBytes == -1)
@@ -102,14 +101,30 @@ int main(int argc, char *argv[])
       if (nBytes == 0)
         break;
 
-      printf("li coisas\n");
-
+      //log
+      smo = SYNC_OP_COND_WAIT;
+      sem_getvalue(&empty, &sem_val);
+      logSyncMechSem(slogFd, 0, smo, prole, getpid(), sem_val);
+      //ipc
       sem_wait(&empty);
+      //log
+      smo = SYNC_OP_MUTEX_LOCK;
+      logSyncMech(slogFd, 0, smo, prole, getpid());
+      //ipc
       pthread_mutex_lock(&mut);
-      printf("producer\n");
+      //critical region
       queuePush(request);
+      //ipc
       pthread_mutex_unlock(&mut);
+      //log
+      smo = SYNC_OP_MUTEX_UNLOCK;
+      logSyncMech(slogFd, 0, smo, prole, getpid());
+      //ipc
       sem_post(&full);
+      //log
+      smo = SYNC_OP_SEM_POST;
+      sem_getvalue(&full, &sem_val);
+      logSyncMechSem(slogFd, 0, smo, prole, getpid(), sem_val);
     }
   }
 
@@ -146,10 +161,17 @@ void *bank_office_process(void *arg)
     char USER_FIFO_PATH[USER_FIFO_PATH_LEN];
 
     printf("estou a funcionar\n");
+    //log
+    smo = SYNC_OP_COND_WAIT;
+    sem_getvalue(&full, &sem_val);
+    logSyncMechSem(slogFd, 0, smo, crole, getpid(), sem_val);
     //1# IPC
     sem_wait(&full);
+    //log
+    smo = SYNC_OP_MUTEX_LOCK;
+    logSyncMech(slogFd, 0, smo, prole, getpid());
+    //ipc
     pthread_mutex_lock(&mut);
-    printf("consumer\n");
     //2#receive
     request = queuePop();
     //print_request(request);
@@ -159,26 +181,32 @@ void *bank_office_process(void *arg)
     switch (request.type)
     {
     case OP_CREATE_ACCOUNT:
-     /* if (verifyIfAdmin(&admin_account, request.value.create.account_id, request.value.create.balance, request.value.create.password) != 0)
+      /* if (verifyIfAdmin(&admin_account, request.value.create.account_id, request.value.create.balance, request.value.create.password) != 0)
         // Retorna para o usr pelo fifo o tlv reply a dizer OP_NALLOW
         if (create_bank_account(&accounts[acc_index++], request.value.create.account_id, request.value.create.balance, request.value.create.password) != 0)
           return (int *)2; //?????*/
+
+      reply.type = request.type;
+      reply.value.header.account_id = request.value.header.account_id;
+      reply.value.header.ret_code = 0;
+      reply.length = sizeof(reply.value);
       printf("create acc\n");
       logAccountCreation(slogFd, request.value.create.account_id, &accounts[acc_index]);
-      writeToFifo(reply,USER_FIFO_PATH);
+      writeToFifo(reply, USER_FIFO_PATH);
       break;
 
     case OP_BALANCE: //checked on user
-      if(request.value.header.account_id != 0){ //check if is not admin 
-          reply.type= request.type;
-          reply.length = request.length;
+      if (request.value.header.account_id != 0)
+      { //check if is not admin
+        reply.type = request.type;
+        reply.length = request.length;
 
-          reply.value.header.account_id=request.value.header.account_id;
-          reply.value.header.ret_code=0;
-          reply.value.balance.balance=accounts[(int)request.value.header.account_id].balance;
+        reply.value.header.account_id = request.value.header.account_id;
+        reply.value.header.ret_code = 0;
+        reply.value.balance.balance = accounts[(int)request.value.header.account_id].balance;
       }
       //print_request(request);
-      writeToFifo(reply,USER_FIFO_PATH);
+      writeToFifo(reply, USER_FIFO_PATH);
       break;
 
     case OP_TRANSFER:
@@ -196,7 +224,15 @@ void *bank_office_process(void *arg)
 
     //3# IPC
     pthread_mutex_unlock(&mut);
+    //log
+    smo = SYNC_OP_MUTEX_UNLOCK;
+    logSyncMech(slogFd, 0, smo, crole, getpid());
+    //IPC
     sem_post(&empty);
+    //log
+    smo = SYNC_OP_SEM_POST;
+    sem_getvalue(&empty, &sem_val);
+    logSyncMechSem(slogFd, 0, smo, crole, getpid(), sem_val);
   }
 
   printf("thread #%ld!\n", pthread_self());
