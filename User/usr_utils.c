@@ -44,7 +44,6 @@ int parse_input (tlv_request_t *request, char *argv[]) {
 
 int writeToFifo (tlv_request_t request) {
   int srvFifo = open (SERVER_FIFO_PATH, O_WRONLY);
-  printf("ola\n");
   if (srvFifo == -1)
     return FIFO_OPEN_ERR;
 
@@ -68,13 +67,20 @@ tlv_reply_t readFifo(int tmpFifo){
 
       if (nBytes == 0)
           exit(18);
+      print_reply(reply);
 
       nBytes = read(tmpFifo, &reply.value, reply.length);
       if (nBytes == -1)
         exit(FIFO_READ_ERR);
-
+       print_reply(reply);
       if (nBytes == 0)
           exit(19);
       printf("li coisas\n");
       return reply;
+}
+
+void print_reply(tlv_reply_t reply)
+{
+  printf("acc id: %d\n", reply.value.header.account_id);
+  printf("ret: %d\n", reply.value.header.ret_code);
 }

@@ -186,7 +186,7 @@ int writeToFifo (tlv_reply_t reply,char *path) {
   if (tmpFifo == -1)
     return FIFO_OPEN_ERR;
 
-  int nBytes = write (tmpFifo, &reply, sizeof (op_type_t) + sizeof (uint32_t) + reply.length);
+  int nBytes = write (tmpFifo, &reply, sizeof (op_type_t) + sizeof (uint32_t));
   if (nBytes == -1)
     return FIFO_WRITE_ERR;
 
@@ -197,10 +197,10 @@ int writeToFifo (tlv_reply_t reply,char *path) {
   
 void print_request(tlv_request_t request)
 {
-  printf("acc id: %d", request.value.header.account_id);
-  printf("pass: %s", request.value.header.password);
-  printf("delay: %d", request.value.header.op_delay_ms);
-  printf("aac id create: %d", request.value.create.account_id);
-  printf("balance: %d", request.value.create.balance);
-  printf("balance: %s", request.value.create.password);
+  printf("acc id: %d\n", request.value.header.account_id);
+  printf("pass: %s\n", request.value.header.password);
+  printf("delay: %d\n", request.value.header.op_delay_ms);
+  printf("aac id create: %d\n", request.value.create.account_id);
+  printf("balance: %d\n", request.value.create.balance);
+  printf("balance: %s\n", request.value.create.password);
 }
