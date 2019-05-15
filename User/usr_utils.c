@@ -43,7 +43,8 @@ int parse_input (tlv_request_t *request, char *argv[]) {
 }
 
 int writeToFifo (tlv_request_t request) {
-  int srvFifo = open (SERVER_FIFO_PATH, O_WRONLY | O_NONBLOCK);
+  int srvFifo = open (SERVER_FIFO_PATH, O_WRONLY);
+  printf("ola\n");
   if (srvFifo == -1)
     return FIFO_OPEN_ERR;
 
@@ -54,4 +55,26 @@ int writeToFifo (tlv_request_t request) {
   close (srvFifo);
   
   return 0;
+}
+
+
+tlv_reply_t readFifo(int tmpFifo){
+    int nBytes = 0;
+      tlv_reply_t reply;
+
+      nBytes = read(tmpFifo, &reply, sizeof(op_type_t) + sizeof(uint32_t));
+      if (nBytes == -1)
+        exit(FIFO_READ_ERR);
+
+      if (nBytes == 0)
+          exit(18);
+
+      nBytes = read(tmpFifo, &reply.value, reply.length);
+      if (nBytes == -1)
+        exit(FIFO_READ_ERR);
+
+      if (nBytes == 0)
+          exit(19);
+      printf("li coisas\n");
+      return reply;
 }

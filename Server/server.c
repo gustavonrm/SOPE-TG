@@ -143,7 +143,6 @@ void *bank_office_process(void *arg)
   {
     tlv_request_t request;
     tlv_reply_t reply;
-    int tmpFifo;
     char USER_FIFO_PATH[USER_FIFO_PATH_LEN];
 
     printf("estou a funcionar\n");
@@ -156,7 +155,6 @@ void *bank_office_process(void *arg)
     //print_request(request);
     //fifo name
     sprintf(USER_FIFO_PATH, "%s%d", USER_FIFO_PATH_PREFIX, request.value.header.pid);
-    tmpFifo = open(USER_FIFO_PATH, O_WRONLY | O_NONBLOCK);
 
     switch (request.type)
     {
@@ -167,7 +165,7 @@ void *bank_office_process(void *arg)
           return (int *)2; //?????*/
       printf("create acc\n");
       logAccountCreation(slogFd, request.value.create.account_id, &accounts[acc_index]);
-      write(tmpFifo, &reply, sizeof(reply));
+      writeToFifo(reply,USER_FIFO_PATH);
       break;
 
     case OP_BALANCE: //checked on user
@@ -180,7 +178,7 @@ void *bank_office_process(void *arg)
           reply.value.balance.balance=accounts[(int)request.value.header.account_id].balance;
       }
       //print_request(request);
-      write(tmpFifo,&reply,sizeof(reply));
+      writeToFifo(reply,USER_FIFO_PATH);
       break;
 
     case OP_TRANSFER:

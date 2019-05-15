@@ -180,6 +180,20 @@ tlv_reply_t makeErrorReply(tlv_request_t *request, enum ret_code ret){
 
   return errorReply;
 }
+
+int writeToFifo (tlv_reply_t reply,char *path) {
+  int tmpFifo = open (path, O_WRONLY | O_NONBLOCK);
+  if (tmpFifo == -1)
+    return FIFO_OPEN_ERR;
+
+  int nBytes = write (tmpFifo, &reply, sizeof (op_type_t) + sizeof (uint32_t) + reply.length);
+  if (nBytes == -1)
+    return FIFO_WRITE_ERR;
+
+  close (tmpFifo);
+  
+  return 0;
+}
   
 void print_request(tlv_request_t request)
 {

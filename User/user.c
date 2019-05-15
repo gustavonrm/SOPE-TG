@@ -61,10 +61,10 @@ int main (int argc, char *argv[]) {
     ret = RC_SRV_DOWN;
     exit (ret);
   }
-
-  if ((read (usrFIFO, &reply, sizeof (reply))) != 0)
-    exit (FIFO_READ_ERR);
- 
+  reply = readFifo(usrFIFO);
+  //if ((read (usrFIFO, &reply, sizeof (reply))) != 0)
+ //   exit (FIFO_READ_ERR);
+  logReply(ulogFd,getpid(),&reply);
 
   //close
   if (close (ulogFd) != 0)
