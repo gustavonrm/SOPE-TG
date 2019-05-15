@@ -179,6 +179,7 @@ tlv_reply_t makeErrorReply(tlv_request_t *request, enum ret_code ret){
   errorReply.length = sizeof(request->value);
 
   return errorReply;
+}
   
 void print_request(tlv_request_t request)
 {

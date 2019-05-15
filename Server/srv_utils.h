@@ -37,7 +37,7 @@ tlv_request_t queuePop ();
 
 void queueDelete ();
 
-tlv_reply_t makeReply(enum ret_code ret, tlv_request_t request);
+tlv_reply_t makeReply(tlv_request_t *request, uint32_t data);
 
 tlv_reply_t makeErrorReply(tlv_request_t *request, enum ret_code ret);
 
