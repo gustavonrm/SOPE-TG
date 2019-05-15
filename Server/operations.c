@@ -57,8 +57,8 @@ ret_code_t transfer_between_accounts (bank_account_t *src, bank_account_t *dest,
     return ret = RC_OTHER;
 
   //proceed opperation
-  src->balance -= ammount;
-  dest->balance += ammount;
+  src->balance = ammount;
+  dest->balance = ammount;
 
   return ret;
 }
