@@ -173,6 +173,8 @@ void *bank_office_process (void *arg) {
     switch (request.type) {
     case OP_CREATE_ACCOUNT: {
       ret_code_t ret;
+      uint32_t id = request.value.create.account_id;
+
       ret = verifyIfAdmin (&admin_account, request.value.header.account_id, request.value.header.password);
       if (ret == RC_LOGIN_FAIL){
         reply = makeErrorReply (&request, RC_LOGIN_FAIL);
@@ -184,14 +186,18 @@ void *bank_office_process (void *arg) {
         writeToFifo (reply, USER_FIFO_PATH);
         break;
       }
-      uint32_t id = request.value.create.account_id;
       if (accounts[id].account_id == id){
         reply = makeErrorReply (&request, RC_ID_IN_USE);
         writeToFifo (reply, USER_FIFO_PATH);
         break;
       }
       
-      create_bank_account (&accounts[id], request.value.create.account_id, request.value.create.balance, request.value.create.password);
+      ret = create_bank_account (&accounts[id], request.value.create.account_id, request.value.create.balance, request.value.create.password);
+      if (ret == RC_OTHER) {
+        reply = makeErrorReply (&request, RC_OTHER);
+        writeToFifo (reply, USER_FIFO_PATH);
+        break;
+      }
       reply = makeReply (&request, accounts[id].balance);
       
       logAccountCreation (slogFd, request.value.create.account_id, &accounts[id]);
