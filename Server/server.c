@@ -171,7 +171,7 @@ void *bank_office_process (void *arg) {
     sprintf (USER_FIFO_PATH, "%s%d", USER_FIFO_PATH_PREFIX, request.value.header.pid);
 
     switch (request.type) {
-    case OP_CREATE_ACCOUNT: {
+      case OP_CREATE_ACCOUNT: {
       ret_code_t ret;
       uint32_t id = request.value.create.account_id;
 
