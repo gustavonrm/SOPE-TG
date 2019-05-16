@@ -26,7 +26,7 @@ int parse_input (tlv_request_t *request, char *argv[]) {
   case OP_TRANSFER:
     type = OP_TRANSFER;
     value.transfer.account_id = (uint32_t)atoi (strtok(argv[5], " "));
-    value.transfer.amount = (uint32_t)atoi (argv[5]);
+    value.transfer.amount = (uint32_t)atoi (strtok(NULL," "));
     break;
 
   case OP_SHUTDOWN:

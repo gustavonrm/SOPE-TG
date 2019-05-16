@@ -255,6 +255,16 @@ void *bank_office_process(void *arg)
       uint32_t src_id = request.value.header.account_id;
       uint32_t dest_id = request.value.transfer.account_id;
 
+      printf("dest id: %d\n",request.value.transfer.account_id);
+      printf("dest amm: %d\n", request.value.transfer.amount);
+
+      if (request.value.header.account_id == ADMIN_ACCOUNT_ID)
+      {
+        reply = makeErrorReply(&request, RC_OP_NALLOW);
+        writeToFifo(reply, USER_FIFO_PATH);
+        break;
+      }
+
       if(accounts[src_id].account_id == 0){
         reply = makeErrorReply(&request, RC_ID_NOT_FOUND);
         reply.value.transfer.balance=0;
@@ -266,13 +276,6 @@ void *bank_office_process(void *arg)
       if (ret != RC_OK)
       {
         reply = makeErrorReply(&request, RC_LOGIN_FAIL);
-        writeToFifo(reply, USER_FIFO_PATH);
-        break;
-      }
-
-      if (request.value.header.account_id == ADMIN_ACCOUNT_ID)
-      {
-        reply = makeErrorReply(&request, RC_OP_NALLOW);
         writeToFifo(reply, USER_FIFO_PATH);
         break;
       }
