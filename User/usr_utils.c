@@ -6,8 +6,7 @@ int parse_input (tlv_request_t *request, char *argv[]) {
 
   value.header.pid = getpid ();
 
-  if(verifyIfInt(argv[1]) == 0)
-    return ACC_CREATE_ERR;
+
   value.header.account_id = (uint32_t)atoi (argv[1]);
   strcpy (value.header.password, argv[2]);
   value.header.op_delay_ms = (uint32_t)atoi (argv[3]);

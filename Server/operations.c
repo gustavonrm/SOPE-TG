@@ -62,7 +62,7 @@ ret_code_t transfer_between_accounts (bank_account_t *src, bank_account_t *dest,
   return RC_OK;
 }
 
-ret_code_t verifyIfAdmin (bank_account_t *admin, uint32_t id, char *password) {
+ret_code_t verifyIfAdmin (uint32_t id) {
   if (id != ADMIN_ACCOUNT_ID)
     return RC_OP_NALLOW;
  

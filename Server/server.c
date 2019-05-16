@@ -96,7 +96,7 @@ int main (int argc, char *argv[]) {
     if (nBytes == 0)
       continue;
 
-    //print_request (request);
+    print_request (request);
     //log
     smo = SYNC_OP_COND_WAIT;
     sem_getvalue (&empty, &sem_val);
@@ -176,12 +176,14 @@ void *bank_office_process (void *arg) {
       ret_code_t ret;
       uint32_t id = request.value.create.account_id;
       
-      ret = verifyIfAdmin (&admin_account, request.value.header.account_id, request.value.header.password);
-      if (ret == RC_LOGIN_FAIL) {
+      ret = checkLogin (&(accounts[0]), request.value.header.password);
+      if (ret != RC_OK){
         reply = makeErrorReply (&request, RC_LOGIN_FAIL);
         writeToFifo (reply, USER_FIFO_PATH);
         break;
       }
+
+      ret = verifyIfAdmin (request.value.header.account_id);
       if (ret == RC_OP_NALLOW) {
         reply = makeErrorReply (&request, RC_OP_NALLOW);
         writeToFifo (reply, USER_FIFO_PATH);
@@ -231,7 +233,7 @@ void *bank_office_process (void *arg) {
       break;
 
     case OP_SHUTDOWN:
-      if (verifyIfAdmin (&admin_account, request.value.create.account_id, request.value.create.password) != 0)
+      if (verifyIfAdmin (request.value.create.account_id) != 0)
         // Retorna para o usr pelo fifo o tlv reply a dizer OP_NALLOW
         pthread_exit(0);
       break;
