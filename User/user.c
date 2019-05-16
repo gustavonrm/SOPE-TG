@@ -12,6 +12,7 @@
 #include "../Common/sope.h"
 #include "../Common/error.h"
 #include "../Common/types.h"
+#include "../Common/reply.h"
 
 #include "usr_utils.h"
 
@@ -46,9 +47,11 @@ int main (int argc, char *argv[]) {
     exit (FILE_OPEN_ERR);
 
   ret = writeToFifo (request);
-  if (ret != 0){
-      printf ("Error: %s\n", ret == FIFO_OPEN_ERR ? "Opening server fifo" : "Writing to fifo");
-      exit(FIFO_OPEN_ERR);
+  if (ret != RC_OK){
+    reply = makeErrorReply (&request, ret);
+    logReply (ulogFd, getpid (), &reply);
+    
+    return -1;
   }
     
   logRequest (ulogFd, getpid(), &request);

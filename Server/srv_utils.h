@@ -43,6 +43,8 @@ tlv_request_t queuePop ();
 
 void queueDelete ();
 
+int queueEmpty ();
+
 void delay (tlv_request_t request);
 
 ret_code_t checkLogin (bank_account_t *account, char password[]);

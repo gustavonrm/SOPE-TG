@@ -132,6 +132,10 @@ void queueDelete () {
   }
 }
 
+int queueEmpty () {
+  return requestQueue.head == NULL;
+}
+
 int writeToFifo (tlv_reply_t reply, char *path) {
   printf ("Id: %d\n", reply.value.header.account_id);
   printf ("Ret: %d\n", reply.value.header.ret_code);

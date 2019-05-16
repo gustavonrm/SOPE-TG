@@ -15,7 +15,7 @@
 
 int parse_input (tlv_request_t *request, char *argv[]);
 
-int writeToFifo (tlv_request_t request);
+ret_code_t writeToFifo (tlv_request_t request);
 
 tlv_reply_t readFifo (int tmpFifo);
 
