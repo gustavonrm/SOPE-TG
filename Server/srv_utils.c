@@ -187,7 +187,7 @@ ret_code_t checkLogin(bank_account_t *account, char password[]) {
 
   if(strncmp (account -> hash, hash, 64) != 0)
     return RC_LOGIN_FAIL;
-
+  
   return RC_OK;
 }
 

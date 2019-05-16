@@ -34,11 +34,8 @@ ret_code_t transfer_between_accounts (bank_account_t *src, bank_account_t *dest,
   uint32_t new_src_balance = src->balance - ammount;
   uint32_t new_dest_balance = dest->balance + ammount;
 
-  ///errors
   if (src->account_id == 0)
     return RC_OP_NALLOW;
-
-  //CHECK ALL ACCOUNTS IF ACC DONEST EXIST RET = ID_NOT_FOUND
   
   if (src->account_id == dest->account_id)
     return RC_SAME_ID;
@@ -59,12 +56,5 @@ ret_code_t transfer_between_accounts (bank_account_t *src, bank_account_t *dest,
   src->balance = new_src_balance;
   dest->balance = new_dest_balance;
 
-  return RC_OK;
-}
-
-ret_code_t verifyIfAdmin (uint32_t id) {
-  if (id != ADMIN_ACCOUNT_ID)
-    return RC_OP_NALLOW;
- 
   return RC_OK;
 }

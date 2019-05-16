@@ -64,7 +64,7 @@ int main (int argc, char *argv[]) {
   if (create_bank_account (&admin_account, ADMIN_ACCOUNT_ID, 0, argv[2]) != 0)
     return ACC_CREATE_ERR;
   accounts[0] = admin_account;
-  logAccountCreation( slogFd, 0000, &admin_account);
+  logAccountCreation (slogFd, 0000, &admin_account);
   
   for (int i = 1; i <= numOffices; i++) {
     pthread_create (&offices[i], NULL, bank_office_process, (void *)&i);
@@ -143,7 +143,7 @@ void _cleanUp (int srvFifo, int slogFd) {
 
 //////////////////THREADS///////////////////////
 void *bank_office_process (void *arg) {
-  printf("thread #%ld!\n", pthread_self ());
+  printf ("thread #%ld!\n", pthread_self ());
   int index = (*(int *)arg);
   while (1) {
     tlv_request_t request;
@@ -183,8 +183,7 @@ void *bank_office_process (void *arg) {
         break;
       }
 
-      ret = verifyIfAdmin (request.value.header.account_id);
-      if (ret == RC_OP_NALLOW) {
+      if (request.value.header.account_id != ADMIN_ACCOUNT_ID) {
         reply = makeErrorReply (&request, RC_OP_NALLOW);
         writeToFifo (reply, USER_FIFO_PATH);
         break;
@@ -194,7 +193,7 @@ void *bank_office_process (void *arg) {
         writeToFifo (reply, USER_FIFO_PATH);
         break;
       }
-
+      
       ret = create_bank_account (&accounts[id], request.value.create.account_id, request.value.create.balance, request.value.create.password);
       if (ret == RC_OTHER) {
         reply = makeErrorReply (&request, RC_OTHER);
@@ -233,7 +232,7 @@ void *bank_office_process (void *arg) {
       break;
 
     case OP_SHUTDOWN:
-      if (verifyIfAdmin (request.value.create.account_id) != 0)
+      if (request.value.header.account_id != ADMIN_ACCOUNT_ID)
         // Retorna para o usr pelo fifo o tlv reply a dizer OP_NALLOW
         pthread_exit(0);
       break;
