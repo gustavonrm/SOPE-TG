@@ -85,6 +85,9 @@ int main (int argc, char *argv[]) {
     if (nBytes == -1)
       exit (FIFO_READ_ERR);
 
+    if (nBytes == 0)
+      continue;
+
     nBytes = read (srvFifo, &request.value, request.length);
     if (nBytes == -1)
       exit (FIFO_READ_ERR);
@@ -169,7 +172,7 @@ void *bank_office_process (void *arg) {
     case OP_CREATE_ACCOUNT: {
       // Verificar se e admin
       // Verificar se id nao e repetido
-      // Verificar retun de creat_bank_account
+      // Verificar return de creat_bank_account
       create_bank_account (&accounts[acc_index++], request.value.create.account_id, request.value.create.balance, request.value.create.password);
       reply.type = request.type;
       reply.value.header.account_id = request.value.header.account_id;
