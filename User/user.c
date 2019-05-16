@@ -3,7 +3,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
-#include <stdio.h>
 #include <signal.h>
 
 #include <sys/stat.h>
@@ -17,6 +16,8 @@
 #include "usr_utils.h"
 
 void _print_usage (FILE *stream);
+void _alarm_handler ();
+void _install_handler ();
 
 /////GLOBAL////
 int ulogFd;
@@ -33,8 +34,10 @@ int main (int argc, char *argv[]) {
     exit (ARG_ERR);
   }
   
-  if (atoi(argv[1]) > MAX_BANK_ACCOUNTS)
+  if (atoi (argv[1]) > MAX_BANK_ACCOUNTS)
     return INVALID_INPUT_ERR;
+
+  void _install_handler ();
 
   parse_input (&request, argv);
 
@@ -45,6 +48,7 @@ int main (int argc, char *argv[]) {
   ret = writeToFifo (request);
   if (ret != 0)
     printf ("Error: %s\n", ret == FIFO_OPEN_ERR ? "Opening server fifo" : "Writing to fifo");
+    // return;
     
   logRequest (ulogFd, getpid(), &request);
 
@@ -61,20 +65,21 @@ int main (int argc, char *argv[]) {
     ret = RC_SRV_DOWN;
     exit (ret);
   }
-  reply = readFifo(usrFIFO);
+  reply = readFifo (usrFIFO);
   //if ((read (usrFIFO, &reply, sizeof (reply))) != 0)
  //   exit (FIFO_READ_ERR);
-  logReply(ulogFd,getpid(),&reply);
+  logReply (ulogFd, getpid (), &reply);
 
   //close
   if (close (ulogFd) != 0)
     exit (FILE_CLOSE_ERR);
+  
+  if (close (USER_FIFO_PATH) != 0)
+    return FIFO_CLOSE_ERR;
 
   if ((unlink (USER_FIFO_PATH) != 0))
     exit (UNLINK_ERR);
   
-  close (ulogFd);
-
   return 0;
 }
 
@@ -86,16 +91,24 @@ void _print_usage (FILE *stream) {
   fprintf (stream, "\t3 - Server shutdown: acc_id must be admin, info empty \"\"\n");
 }
 
-void _alarm_handler (int signo) {
-  int i = signo;
-  i++; //we should probably remove -Werror flag.
-  printf ("alarm recieved\n");
-  //close
+void _install_handler () {
+  struct sigaction action;
+  action.sa_handler = _alarm_handler;
+  sigemptyset (&action.sa_mask);
+  action.sa_flags = 0;
+  sigaction (SIGALRM, &action, NULL);
+}
+
+void _alarm_handler () {
   if (close (ulogFd) != 0)
     exit (FILE_CLOSE_ERR);
+
+  if (close (USER_FIFO_PATH) != 0)
+    exit (FIFO_CLOSE_ERR);
 
   if ((unlink (USER_FIFO_PATH) != 0))
     exit (UNLINK_ERR);
 
+  // Log server time out
   exit (RC_SRV_TIMEOUT);
 } 
