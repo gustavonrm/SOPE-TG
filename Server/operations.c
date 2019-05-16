@@ -31,52 +31,40 @@ ret_code_t create_bank_account (bank_account_t *acc, uint32_t id, uint32_t balan
 }
 
 ret_code_t transfer_between_accounts (bank_account_t *src, bank_account_t *dest, uint32_t ammount){
-  ret_code_t ret = RC_OK;
   uint32_t new_src_balance = src->balance - ammount;
   uint32_t new_dest_balance = dest->balance + ammount;
 
   ///errors
   if (src->account_id == 0)
-    return ret = RC_OP_NALLOW;
+    return RC_OP_NALLOW;
 
   //CHECK ALL ACCOUNTS IF ACC DONEST EXIST RET = ID_NOT_FOUND
   
   if (src->account_id == dest->account_id)
-    return ret = RC_SAME_ID;
+    return RC_SAME_ID;
 
   if (new_src_balance < MIN_BALANCE)
-    return ret = RC_NO_FUNDS;
+    return RC_NO_FUNDS;
 
   if (new_dest_balance > MAX_BALANCE)
-    return ret = RC_TOO_HIGH;
+    return RC_TOO_HIGH;
 
   if (dest->account_id < 1 || dest->account_id >= MAX_BANK_ACCOUNTS)
-    return ret = RC_OTHER;
+    return RC_OTHER;
 
   if (ammount < 1 || ammount > MAX_BALANCE)
-    return ret = RC_OTHER;
+    return RC_OTHER;
 
   //proceed opperation
-  src->balance = ammount;
-  dest->balance = ammount;
+  src->balance = new_src_balance;
+  dest->balance = new_dest_balance;
 
-  return ret;
+  return RC_OK;
 }
-
-
 
 ret_code_t verifyIfAdmin (bank_account_t *admin, uint32_t id, char *password) {
   if (id != ADMIN_ACCOUNT_ID)
     return RC_OP_NALLOW;
-  
-  char saltedPass[SALT_LEN + MAX_PASSWORD_LEN];
-
-  strcpy (saltedPass, admin ->salt);
-  strcat (saltedPass, password);
-  
-  char hash[HASH_LEN];
-
-  get_hash (saltedPass, hash);
-  
-  return strncmp (admin -> hash, hash, 64) != 0 ? RC_LOGIN_FAIL : RC_OK;
+ 
+  return RC_OK;
 }
