@@ -147,10 +147,11 @@ void *bank_office_process (void *arg) {
   while (1) {
     tlv_request_t request;
     tlv_reply_t reply;
+    ret_code_t ret;
     char USER_FIFO_PATH[USER_FIFO_PATH_LEN];
 
     //log
-    smo = SYNC_OP_COND_WAIT;
+    smo = SYNC_OP_SEM_WAIT;
     sem_getvalue (&full, &sem_val);
     logSyncMechSem (slogFd, index, smo, crole, getpid(), sem_val);
     //1# IPC
@@ -186,17 +187,12 @@ void *bank_office_process (void *arg) {
 
     case OP_BALANCE: //checked on user
       if (request.value.header.account_id != 0) { //check if is not admin
-        reply.type = request.type;
-        reply.length = request.length;
-
-        reply.value.header.account_id = request.value.header.account_id;
-        reply.value.header.ret_code = 0;
-        reply.value.balance.balance = accounts[ (int)request.value.header.account_id].balance;
+          reply = makeReply(&request,accounts[(int)request.value.header.account_id].balance);
+      }else{
+          reply = makeErrorReply(&request,ret=RC_OP_NALLOW);
       }
-      //print_request(request);
       writeToFifo (reply, USER_FIFO_PATH);
       break;
-
     case OP_TRANSFER:
       break;
 
