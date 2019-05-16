@@ -145,80 +145,34 @@ void queueDelete()
   }
 }
 
-tlv_reply_t makeReply(tlv_request_t *request, uint32_t data)
-{
-  tlv_reply_t reply;
-
-  switch (request->type)
-  {
-  case OP_BALANCE:
-    reply.value.balance.balance = data;
-    break;
-  case OP_TRANSFER:
-    reply.value.transfer.balance = data;
-    break;
-  case OP_SHUTDOWN:
-    reply.value.shutdown.active_offices = data;
-    break;
-  default:
-    break;
-  }
-
-  reply.value.header.account_id = request->value.header.account_id;
-  reply.value.header.ret_code = RC_OK;
-  reply.type = request->type;
-  reply.length = sizeof(request->value);
-
-  return reply;
-}
-
-tlv_reply_t makeErrorReply(tlv_request_t *request, enum ret_code ret)
-{
-  tlv_reply_t errorReply;
-
-  errorReply.value.header.account_id = request->value.header.account_id;
-  errorReply.value.header.ret_code = ret;
-  errorReply.type = request->type;
-  errorReply.length = sizeof(request->value);
-
-  return errorReply;
-}
-
-int writeToFifo(tlv_reply_t reply, char *path)
-{
-  int tmpFifo = open(path, O_WRONLY | O_NONBLOCK);
+int writeToFifo (tlv_reply_t reply,char *path) {
+  int tmpFifo = open (path, O_WRONLY | O_NONBLOCK);
   if (tmpFifo == -1)
     return FIFO_OPEN_ERR;
 
-  int nBytes = write(tmpFifo, &reply, sizeof(op_type_t) + sizeof(uint32_t));
+  int nBytes = write (tmpFifo, &reply, sizeof (op_type_t) + sizeof (uint32_t));
   if (nBytes == -1)
     return FIFO_WRITE_ERR;
 
-  close(tmpFifo);
-
+  close (tmpFifo);
+  
   return 0;
 }
+  
+ret_code_t checkLogin(bank_account_t *account, uint32_t id, char password[]){
+  
+  char saltedPass[SALT_LEN + MAX_PASSWORD_LEN];
 
-void delay(tlv_request_t request)
-{
-  switch (request.type)
-  {
-  case OP_CREATE_ACCOUNT:
-    usleep(request.value.header.op_delay_ms);
-    break;
-  case OP_BALANCE:
-    usleep(request.value.header.op_delay_ms);
-    break;
-  case OP_TRANSFER:
-      usleep(request.value.header.op_delay_ms);
-    break;
-  case OP_SHUTDOWN:
-    //imediatamente antes de ser impossibilitado o envio de novos pedidos
-    usleep(request.value.header.op_delay_ms);
-    break;
-  case __OP_MAX_NUMBER:
-    break;
-  }
+  strcpy (saltedPass, account[id].salt);
+  strcat (saltedPass, password);
+
+  char hash[HASH_LEN];
+  get_hash (saltedPass, hash);
+
+  if(strncmp (account[id].hash, hash, 64) != 0)
+    return RC_LOGIN_FAIL;
+
+  return RC_OK;
 }
 
 void print_request(tlv_request_t request)
