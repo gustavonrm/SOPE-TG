@@ -171,7 +171,16 @@ void *bank_office_process (void *arg) {
 
     switch (request.type) {
     case OP_CREATE_ACCOUNT: {
-      // Verificar se e admin
+      int ret;
+      ret = verifyIfAdmin (&admin_account, request.value.header.account_id, request.value.header.password);
+      if (ret != 0 ) {
+        reply.type = request.type;
+        reply.value.header.account_id = request.value.header.account_id;
+        reply.value.header.ret_code = RC_OP_NALLOW;
+        reply.length = sizeof (reply.value);
+        writeToFifo (reply, USER_FIFO_PATH);
+        break;
+      }
       // Verificar se id nao e repetido
       // Verificar return de creat_bank_account
       create_bank_account (&accounts[acc_index++], request.value.create.account_id, request.value.create.balance, request.value.create.password);
@@ -197,7 +206,7 @@ void *bank_office_process (void *arg) {
       break;
 
     case OP_SHUTDOWN:
-      if (verifyIfAdmin (&admin_account, request.value.create.account_id, request.value.create.balance, request.value.create.password) != 0)
+      if (verifyIfAdmin (&admin_account, request.value.create.account_id, request.value.create.password) != 0)
         // Retorna para o usr pelo fifo o tlv reply a dizer OP_NALLOW
         pthread_exit (0);
       break;
