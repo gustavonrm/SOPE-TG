@@ -43,11 +43,9 @@ tlv_request_t queuePop ();
 
 void queueDelete ();
 
-tlv_reply_t makeReply(tlv_request_t *request, uint32_t data);
-
-tlv_reply_t makeErrorReply(tlv_request_t *request, enum ret_code ret);
-
 void delay(tlv_request_t request);
+
+ret_code_t checkLogin(bank_account_t *account, uint32_t id, char password[]);
 
 void print_request(tlv_request_t request);
 
