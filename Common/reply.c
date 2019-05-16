@@ -29,6 +29,9 @@ tlv_reply_t makeReply(tlv_request_t *request, uint32_t data){
 tlv_reply_t makeErrorReply(tlv_request_t *request, ret_code_t ret){
     tlv_reply_t errorReply;
 
+    if(request->type == OP_BALANCE){
+        errorReply.value.balance.balance=0;
+    }
     errorReply.value.header.account_id=request->value.header.account_id;
     errorReply.value.header.ret_code = ret;
     errorReply.type=request->type;

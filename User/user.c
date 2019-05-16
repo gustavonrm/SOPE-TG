@@ -86,7 +86,7 @@ int main (int argc, char *argv[]) {
 
 void _print_usage (FILE *stream) {
   fprintf (stream, "Usage: user <acc_id> \"<acc_pass>\" <delay> <action> \"<info>\"\n");
-  fprintf (stream, "Action:\t0 - Create account: acc_id must be admin, info \"new_acc_id password money\"\n");
+  fprintf (stream, "Action:\t0 - Create account: acc_id must be admin, info \"new_acc_id money password\"\n");
   fprintf (stream, "\t1 - Check balance: acc_id account to check, info empty \"\"\n");
   fprintf (stream, "\t2 - Money wire: acc_id account of origin, info \"dest_acc_id amount\"\n");
   fprintf (stream, "\t3 - Server shutdown: acc_id must be admin, info empty \"\"\n");
