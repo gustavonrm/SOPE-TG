@@ -24,9 +24,9 @@ int create_bank_account (bank_account_t *acc, uint32_t id, uint32_t balance, cha
 
   strcpy (saltedPass, acc->salt);
   strcat (saltedPass, password);
-
+  
   get_hash (saltedPass, acc->hash);
-
+  
   return 0;
 }
 
@@ -63,18 +63,18 @@ ret_code_t transfer_between_accounts (bank_account_t *src, bank_account_t *dest,
   return ret;
 }
 
-int verifyIfAdmin (bank_account_t *admin, uint32_t id, uint32_t balance, char password[]) {
-  if (id != ADMIN_ACCOUNT_ID || balance != 0)
-    return -1;
+int verifyIfAdmin (bank_account_t *admin, uint32_t id, char *password) {
+  if (id != ADMIN_ACCOUNT_ID)
+    return -5;
   
   char saltedPass[SALT_LEN + MAX_PASSWORD_LEN];
 
   strcpy (saltedPass, admin ->salt);
   strcat (saltedPass, password);
-
+  
   char hash[HASH_LEN];
 
   get_hash (saltedPass, hash);
-
+  
   return strncmp (admin -> hash, hash, 64);
 }
