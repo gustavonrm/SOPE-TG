@@ -2,7 +2,7 @@ TARGET = server
 LIBS = -lm
 
 CC = gcc
-CFLAGS = -g -Wall -Wextra -Werror -I. -D_GNU_SOURCE -D_REENTRANT -lpthread 
+CFLAGS = -g -Wall -Wextra -Werror -I. -D_GNU_SOURCE -D_REENTRANT -lpthread -lrt
 LDFLAGS = -g -D_REENTRANT -lpthread
 TFLAGS= -lrt -D_REENTRANT -lpthread
 
