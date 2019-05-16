@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
+#include <ctype.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -18,7 +19,7 @@ int writeToFifo (tlv_request_t request);
 
 tlv_reply_t readFifo (int tmpFifo);
 
-int verifyIfInt(char* string)
+int verifyIfInt(char* string);
 
 void print_reply (tlv_reply_t reply);
 

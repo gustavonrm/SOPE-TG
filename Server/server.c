@@ -11,6 +11,7 @@
 #include "../Common/constants.h"
 #include "../Common/error.h"
 #include "../Common/sope.h"
+#include "../Common/reply.h"
 
 #include "operations.h"
 #include "srv_utils.h"
@@ -24,7 +25,7 @@ int slogFd;
 sem_t empty, full;
 pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 
-bank_account_t accounts[MAX_BANK_ACCOUNTS];
+bank_account_t accounts[MAX_BANK_ACCOUNTS] = {};
 bank_account_t admin_account;
 int acc_index = 0;
 int sem_val;
@@ -171,22 +172,29 @@ void *bank_office_process (void *arg) {
 
     switch (request.type) {
     case OP_CREATE_ACCOUNT: {
-      int ret;
+      ret_code_t ret;
       ret = verifyIfAdmin (&admin_account, request.value.header.account_id, request.value.header.password);
-      if (ret != 0 ) {
+      if (ret == RC_LOGIN_FAIL){
+        reply = makeErrorReply (&request, RC_LOGIN_FAIL);
+        writeToFifo (reply, USER_FIFO_PATH);
+        break;
+      }
+      if (ret == RC_OP_NALLOW){
         reply = makeErrorReply (&request, RC_OP_NALLOW);
         writeToFifo (reply, USER_FIFO_PATH);
         break;
       }
-      // Verificar se id nao e repetido
-      // Verificar return de creat_bank_account
-      create_bank_account (&accounts[acc_index++], request.value.create.account_id, request.value.create.balance, request.value.create.password);
-      reply.type = request.type;
-      reply.value.header.account_id = request.value.header.account_id;
-      reply.value.header.ret_code = RC_OK;
-      reply.length = sizeof (reply.value);
+      uint32_t id = request.value.create.account_id;
+      if (accounts[id].account_id == id){
+        reply = makeErrorReply (&request, RC_ID_IN_USE);
+        writeToFifo (reply, USER_FIFO_PATH);
+        break;
+      }
       
-      logAccountCreation (slogFd, request.value.create.account_id, &accounts[acc_index]);
+      create_bank_account (&accounts[id], request.value.create.account_id, request.value.create.balance, request.value.create.password);
+      reply = makeReply (&request, accounts[id].balance);
+      
+      logAccountCreation (slogFd, request.value.create.account_id, &accounts[id]);
       writeToFifo (reply, USER_FIFO_PATH);
       break;
     }
