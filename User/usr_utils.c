@@ -42,14 +42,13 @@ int parse_input (tlv_request_t *request, char *argv[]) {
   return 0;
 }
 
-void print_request(tlv_request_t request)
-{
-  printf("acc id: %d\n", request.value.header.account_id);
-  printf("pass: %s\n", request.value.header.password);
-  printf("delay: %d\n", request.value.header.op_delay_ms);
-  printf("aac id create: %d\n", request.value.create.account_id);
-  printf("balance: %d\n", request.value.create.balance);
-  printf("balance: %s\n", request.value.create.password);
+void print_request(tlv_request_t request) {
+  printf ("acc id: %d\n", request.value.header.account_id);
+  printf ("pass: %s\n", request.value.header.password);
+  printf ("delay: %d\n", request.value.header.op_delay_ms);
+  printf ("aac id create: %d\n", request.value.create.account_id);
+  printf ("balance: %d\n", request.value.create.balance);
+  printf ("balance: %s\n", request.value.create.password);
 }
 
 int writeToFifo (tlv_request_t request) {

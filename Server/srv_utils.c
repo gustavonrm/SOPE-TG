@@ -133,6 +133,10 @@ void queueDelete () {
 }
 
 int writeToFifo (tlv_reply_t reply, char *path) {
+  printf ("Id: %d\n", reply.value.header.account_id);
+  printf ("Ret: %d\n", reply.value.header.ret_code);
+  printf ("Bal: %d\n", reply.value.balance.balance);
+
   int tmpFifo = open(path, O_WRONLY | O_NONBLOCK);
   if (tmpFifo == -1)
     return FIFO_OPEN_ERR;
@@ -172,17 +176,16 @@ void delay (tlv_request_t request) {
   }
 }
 
-ret_code_t checkLogin(bank_account_t *account, uint32_t id, char password[]){
-  
-  char saltedPass[SALT_LEN + MAX_PASSWORD_LEN];
+ret_code_t checkLogin(bank_account_t *account, char password[]) {
+  char saltedPass[SALT_LEN + strlen (password)];
 
-  strcpy (saltedPass, account[id].salt);
+  strcpy (saltedPass, account -> salt);
   strcat (saltedPass, password);
 
   char hash[HASH_LEN];
   get_hash (saltedPass, hash);
 
-  if(strncmp (account[id].hash, hash, 64) != 0)
+  if(strncmp (account -> hash, hash, 64) != 0)
     return RC_LOGIN_FAIL;
 
   return RC_OK;
