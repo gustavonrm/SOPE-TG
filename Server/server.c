@@ -174,10 +174,7 @@ void *bank_office_process (void *arg) {
       int ret;
       ret = verifyIfAdmin (&admin_account, request.value.header.account_id, request.value.header.password);
       if (ret != 0 ) {
-        reply.type = request.type;
-        reply.value.header.account_id = request.value.header.account_id;
-        reply.value.header.ret_code = RC_OP_NALLOW;
-        reply.length = sizeof (reply.value);
+        reply = makeErrorReply (&request, RC_OP_NALLOW);
         writeToFifo (reply, USER_FIFO_PATH);
         break;
       }
@@ -202,6 +199,7 @@ void *bank_office_process (void *arg) {
       }
       writeToFifo (reply, USER_FIFO_PATH);
       break;
+      
     case OP_TRANSFER:
       break;
 
