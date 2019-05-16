@@ -53,18 +53,18 @@ void print_request(tlv_request_t request) {
   printf ("balance: %s\n", request.value.create.password);
 }
 
-int writeToFifo (tlv_request_t request) {
+ret_code_t writeToFifo (tlv_request_t request) {
   int srvFifo = open (SERVER_FIFO_PATH, O_WRONLY | O_NONBLOCK);
   if (srvFifo == -1)
-    return FIFO_OPEN_ERR;
+    return RC_SRV_DOWN;
 
   int nBytes = write (srvFifo, &request, sizeof (op_type_t) + sizeof (uint32_t) + request.length);
   if (nBytes == -1)
-    return FIFO_WRITE_ERR;
+    return RC_OTHER;
 
   close(srvFifo);
 
-  return 0;
+  return RC_OK;
 }
 
 tlv_reply_t readFifo (int tmpFifo) {

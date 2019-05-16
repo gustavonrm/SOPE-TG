@@ -27,8 +27,8 @@ pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 
 bank_account_t accounts[MAX_BANK_ACCOUNTS] = {};
 bank_account_t admin_account;
-int acc_index = 0;
 int sem_val;
+int whileLoop = -1;
 queue_t requests;
 
 //logs
@@ -82,8 +82,7 @@ int main(int argc, char *argv[])
     exit(FIFO_OPEN_ERR);
 
   int nBytes;
-  while (1)
-  {
+  while (whileLoop  == -1) {
     tlv_request_t request;
 
     nBytes = read(srvFifo, &request, sizeof(op_type_t) + sizeof(uint32_t));
@@ -126,6 +125,12 @@ int main(int argc, char *argv[])
     sem_getvalue(&full, &sem_val);
     logSyncMechSem(slogFd, 0, smo, prole, getpid(), sem_val);
   }
+  printf ("Break free!\n");
+  fchmod (srvFifo, S_IRUSR | S_IRGRP | S_IROTH);
+  
+  sem_getvalue (&empty, &sem_val);
+  while (sem_val != numOffices)
+    sem_getvalue (&empty, &sem_val);
 
   _cleanUp(srvFifo, slogFd);
 
@@ -155,7 +160,6 @@ void *bank_office_process(void *arg)
   {
     tlv_request_t request;
     tlv_reply_t reply;
-    //ret_code_t ret;
     char USER_FIFO_PATH[USER_FIFO_PATH_LEN];
 
     //log
@@ -294,11 +298,28 @@ void *bank_office_process(void *arg)
     }
 
     case OP_SHUTDOWN:
-      if (request.value.header.account_id != ADMIN_ACCOUNT_ID)
-        // Retorna para o usr pelo fifo o tlv reply a dizer OP_NALLOW
-        pthread_exit(0);
-      break;
+    {
+      ret_code_t ret;
 
+      ret = checkLogin (&admin_account, request.value.header.password);
+      if (ret != RC_OK) {
+        reply = makeErrorReply (&request, ret);
+        writeToFifo (reply, USER_FIFO_PATH);
+        break;
+      }
+
+      if (request.value.header.account_id != ADMIN_ACCOUNT_ID) {
+        reply = makeErrorReply (&request, RC_OP_NALLOW);
+        writeToFifo (reply, USER_FIFO_PATH);
+        break;
+      }
+        
+      sem_getvalue (&empty, &whileLoop);
+      reply = makeReply (&request, (uint32_t)whileLoop);
+      writeToFifo (reply, USER_FIFO_PATH);
+
+      break;
+    }
     case __OP_MAX_NUMBER:
       break;
     }
