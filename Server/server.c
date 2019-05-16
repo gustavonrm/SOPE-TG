@@ -117,7 +117,6 @@ int main (int argc, char *argv[]) {
     smo = SYNC_OP_SEM_POST;
     sem_getvalue (&full, &sem_val);
     logSyncMechSem (slogFd, 0, smo, prole, getpid (), sem_val);
-    
   }
 
   _cleanUp (srvFifo, slogFd);
@@ -167,20 +166,20 @@ void *bank_office_process (void *arg) {
     sprintf (USER_FIFO_PATH, "%s%d", USER_FIFO_PATH_PREFIX, request.value.header.pid);
 
     switch (request.type) {
-    case OP_CREATE_ACCOUNT:
-      /* if (verifyIfAdmin(&admin_account, request.value.create.account_id, request.value.create.balance, request.value.create.password) != 0)
-        // Retorna para o usr pelo fifo o tlv reply a dizer OP_NALLOW
-        if (create_bank_account(&accounts[acc_index++], request.value.create.account_id, request.value.create.balance, request.value.create.password) != 0)
-          return (int *)2; //?????*/
-
+    case OP_CREATE_ACCOUNT: {
+      // Verificar se e admin
+      // Verificar se id nao e repetido
+      // Verificar retun de creat_bank_account
+      create_bank_account (&accounts[acc_index++], request.value.create.account_id, request.value.create.balance, request.value.create.password);
       reply.type = request.type;
       reply.value.header.account_id = request.value.header.account_id;
-      reply.value.header.ret_code = 0;
+      reply.value.header.ret_code = RC_OK;
       reply.length = sizeof (reply.value);
-      printf ("create acc\n\n");
+      
       logAccountCreation (slogFd, request.value.create.account_id, &accounts[acc_index]);
       writeToFifo (reply, USER_FIFO_PATH);
       break;
+    }
 
     case OP_BALANCE: //checked on user
       if (request.value.header.account_id != 0) { //check if is not admin
