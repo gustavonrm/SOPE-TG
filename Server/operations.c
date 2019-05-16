@@ -1,6 +1,6 @@
 #include "operations.h"
 
-int create_bank_account (bank_account_t *acc, uint32_t id, uint32_t balance, char password[]){
+int create_bank_account (bank_account_t *acc, uint32_t id, uint32_t balance, char password[]) {
   if (strlen (password) < MIN_PASSWORD_LEN || strlen (password) > MAX_PASSWORD_LEN)
     return ACC_CREATE_ERR;
 

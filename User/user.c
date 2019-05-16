@@ -21,12 +21,12 @@ void _install_handler ();
 
 /////GLOBAL////
 int ulogFd;
+int usrFIFO;
 char USER_FIFO_PATH[USER_FIFO_PATH_LEN];
 
 int main (int argc, char *argv[]) {
   tlv_request_t request;
   tlv_reply_t reply;
-  int usrFIFO;
   int ret;
 
   if (argc != 6) {
@@ -74,7 +74,7 @@ int main (int argc, char *argv[]) {
   if (close (ulogFd) != 0)
     exit (FILE_CLOSE_ERR);
   
-  if (close (USER_FIFO_PATH) != 0)
+  if (close (usrFIFO) != 0)
     return FIFO_CLOSE_ERR;
 
   if ((unlink (USER_FIFO_PATH) != 0))
@@ -84,7 +84,7 @@ int main (int argc, char *argv[]) {
 }
 
 void _print_usage (FILE *stream) {
-  fprintf (stream, "Usage: user <acc_id> <\"acc_pass\"> <delay> <action> <\"info\">\n");
+  fprintf (stream, "Usage: user <acc_id> \"<acc_pass>\" <delay> <action> \"<info>\"\n");
   fprintf (stream, "Action:\t0 - Create account: acc_id must be admin, info \"new_acc_id password money\"\n");
   fprintf (stream, "\t1 - Check balance: acc_id account to check, info empty \"\"\n");
   fprintf (stream, "\t2 - Money wire: acc_id account of origin, info \"dest_acc_id amount\"\n");
@@ -103,7 +103,7 @@ void _alarm_handler () {
   if (close (ulogFd) != 0)
     exit (FILE_CLOSE_ERR);
 
-  if (close (USER_FIFO_PATH) != 0)
+  if (close (usrFIFO) != 0)
     exit (FIFO_CLOSE_ERR);
 
   if ((unlink (USER_FIFO_PATH) != 0))
