@@ -17,6 +17,9 @@
 #include "../Common/types.h"
 #include "../Common/error.h"
 
+#define SEM_NAME_EMPTY  "/sem_empty"
+#define SEM_NAME_FULL   "/sem_full"
+
 struct queueEl {
   tlv_request_t request;
   struct queueEl *next;
@@ -32,7 +35,6 @@ void gen_salt (char *salt);
 
 void get_hash (char *str, char *hash);
 
-//int readFifo (int srvFifo);
 int readFifo (int srvFifo,sem_t full, sem_t empty, pthread_mutex_t mut);
 
 int writeToFifo (tlv_reply_t reply,char *path);

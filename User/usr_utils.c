@@ -80,9 +80,7 @@ tlv_reply_t readFifo (int tmpFifo) {
     exit (FIFO_READ_ERR);
 
   if (nBytes == 0)
-    exit (19);
-    
-  printf ("li coisas\n");
+    exit (FIFO_READ_ERR);
 
   return reply;
 }

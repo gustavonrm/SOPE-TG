@@ -34,12 +34,6 @@ ret_code_t transfer_between_accounts (bank_account_t *src, bank_account_t *dest,
   uint32_t new_src_balance = src->balance - ammount;
   uint32_t new_dest_balance = dest->balance + ammount;
 
-  printf("srcamm: %d",new_src_balance);
-  printf("destamm: %d",new_dest_balance);
-
-  if (src->account_id == 0)
-    return RC_OP_NALLOW;
-  
   if (src->account_id == dest->account_id)
     return RC_SAME_ID;
 
@@ -55,7 +49,6 @@ ret_code_t transfer_between_accounts (bank_account_t *src, bank_account_t *dest,
   if (ammount < 1 || ammount > MAX_BALANCE)
     return RC_OTHER;
 
-  //proceed opperation
   src->balance = new_src_balance;
   dest->balance = new_dest_balance;
 

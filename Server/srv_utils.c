@@ -42,7 +42,9 @@ void get_hash (char *str, char *hash) {
 
     pclose (echo_proc);
     pclose (sha_proc);
+
     buf[HASH_LEN] = '\0';
+
     exit (0);
   } else {
     close (pipefd[1]);
@@ -54,7 +56,6 @@ void get_hash (char *str, char *hash) {
   strncpy (hash, buf, 64);
 }
 
-//int readFifo (int srvFifo)
 int readFifo (int srvFifo, sem_t full, sem_t empty, pthread_mutex_t mut) {
   int nBytes = 0;
 
@@ -75,16 +76,15 @@ int readFifo (int srvFifo, sem_t full, sem_t empty, pthread_mutex_t mut) {
     if (nBytes == 0)
       break;
 
-    printf ("li coisas\n");
-
     sem_wait (&empty);
     pthread_mutex_lock (&mut);
-    printf ("producer\n");
+    
     queuePush (request);
-    // Detetar thread vag
+    
     pthread_mutex_unlock (&mut);
     sem_post (&full);
   }
+
   return 0;
 }
 
@@ -137,11 +137,7 @@ int queueEmpty () {
 }
 
 int writeToFifo (tlv_reply_t reply, char *path) {
-  printf ("Id: %d\n", reply.value.header.account_id);
-  printf ("Ret: %d\n", reply.value.header.ret_code);
-  printf ("Bal: %d\n", reply.value.balance.balance);
-
-  int tmpFifo = open(path, O_WRONLY | O_NONBLOCK);
+  int tmpFifo = open (path, O_WRONLY | O_NONBLOCK);
   if (tmpFifo == -1)
     return FIFO_OPEN_ERR;
   
@@ -149,7 +145,6 @@ int writeToFifo (tlv_reply_t reply, char *path) {
   nBytes = write (tmpFifo, &reply, sizeof (op_type_t) + sizeof (uint32_t) + reply.length);
   if (nBytes == -1)
     return FIFO_WRITE_ERR;
-  
 
   close (tmpFifo);
 
@@ -171,7 +166,6 @@ void delay (tlv_request_t request) {
     break;
 
   case OP_SHUTDOWN:
-    //imediatamente antes de ser impossibilitado o envio de novos pedidos
     usleep (request.value.header.op_delay_ms);
     break;
 
@@ -180,7 +174,7 @@ void delay (tlv_request_t request) {
   }
 }
 
-ret_code_t checkLogin(bank_account_t *account, char password[]) {
+ret_code_t checkLogin (bank_account_t *account, char password[]) {
   char saltedPass[SALT_LEN + strlen (password)];
 
   strcpy (saltedPass, account -> salt);

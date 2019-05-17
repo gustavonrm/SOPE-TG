@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <signal.h>
+#include <errno.h>
 
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -19,14 +20,15 @@
 void _print_usage (FILE *stream);
 void _alarm_handler ();
 void _install_handler ();
+void _cleanUp();
 
 /////GLOBAL////
 int ulogFd;
 int usrFIFO;
 char USER_FIFO_PATH[USER_FIFO_PATH_LEN];
+tlv_request_t request;
 
 int main (int argc, char *argv[]) {
-  tlv_request_t request;
   tlv_reply_t reply;
   int ret;
 
@@ -43,20 +45,20 @@ int main (int argc, char *argv[]) {
   parse_input (&request, argv);
 
   ulogFd = open (USER_LOGFILE, O_WRONLY | O_CREAT | O_APPEND, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
-  if (ulogFd == -1)
+  if (ulogFd == -1) {
+    perror (strerror (errno));
     exit (FILE_OPEN_ERR);
+  }
 
   ret = writeToFifo (request);
   if (ret != RC_OK){
     reply = makeErrorReply (&request, ret);
     logReply (ulogFd, getpid (), &reply);
-    
-    return -1;
+    exit (FIFO_WRITE_ERR);
   }
     
-  logRequest (ulogFd, getpid(), &request);
+  logRequest (ulogFd, getpid (), &request);
 
-  //create reply fifo
   sprintf (USER_FIFO_PATH, "%s%d", USER_FIFO_PATH_PREFIX, getpid ());
 
   if (mkfifo (USER_FIFO_PATH, 0660) != 0)
@@ -64,24 +66,23 @@ int main (int argc, char *argv[]) {
 
   alarm (FIFO_TIMEOUT_SECS);
 
-  //receive reply
-  if ((usrFIFO = open (USER_FIFO_PATH, O_RDONLY)) == -1) {
-    ret = RC_SRV_DOWN;
-    exit (ret);
+  usrFIFO = open (USER_FIFO_PATH, O_RDONLY);
+  if (usrFIFO == -1) {
+    reply = makeErrorReply (&request, RC_SRV_DOWN);
+    logReply (ulogFd, getpid (), &reply);
+    exit (FIFO_OPEN_ERR);
   }
+
   reply = readFifo (usrFIFO);
-  //if ((read (usrFIFO, &reply, sizeof (reply))) != 0)
- //   exit (FIFO_READ_ERR);
   logReply (ulogFd, getpid (), &reply);
 
-  //close
   if (close (ulogFd) != 0)
     exit (FILE_CLOSE_ERR);
   
   if (close (usrFIFO) != 0)
     return FIFO_CLOSE_ERR;
 
-  if ((unlink (USER_FIFO_PATH) != 0))
+  if (unlink (USER_FIFO_PATH) != 0)
     exit (UNLINK_ERR);
   
   return 0;
@@ -113,6 +114,9 @@ void _alarm_handler () {
   if ((unlink (USER_FIFO_PATH) != 0))
     exit (UNLINK_ERR);
 
-  // Log server time out
+  tlv_reply_t reply;
+  reply = makeErrorReply (&request, RC_SRV_TIMEOUT);
+  logReply (ulogFd, getpid (), &reply);
+  
   exit (RC_SRV_TIMEOUT);
 } 
