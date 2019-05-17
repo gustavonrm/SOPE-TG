@@ -27,15 +27,8 @@ pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 
 bank_account_t accounts[MAX_BANK_ACCOUNTS] = {};
 bank_account_t admin_account;
-int sem_val;
-int whileLoop = -1;
-queue_t requests;
 
-//logs
-sync_mech_op_t smo = SYNC_OP_SEM_INIT;
-sync_role_t crole = SYNC_ROLE_CONSUMER;
-sync_role_t prole = SYNC_ROLE_PRODUCER;
-sync_role_t arole = SYNC_ROLE_ACCOUNT;
+int whileLoop = -1;
 
 int main(int argc, char *argv[])
 {
@@ -58,9 +51,9 @@ int main(int argc, char *argv[])
 
   // IPC init
   // TODO CHANGE WHEN IN IPC IMPLEMENTATION
-  logSyncMechSem(slogFd, 0, smo, prole, getpid(), 0);
+  logSyncMechSem(slogFd, 0, SYNC_OP_SEM_INIT, SYNC_ROLE_PRODUCER, getpid(), 0);
   sem_init(&full, 0, 0);
-  logSyncMechSem(slogFd, 0, smo, prole, getpid(), numOffices);
+  logSyncMechSem(slogFd, 0, SYNC_OP_SEM_INIT, SYNC_ROLE_PRODUCER, getpid(), numOffices);
   sem_init(&empty, 0, numOffices);
 
   if (create_bank_account(&admin_account, ADMIN_ACCOUNT_ID, 0, argv[2]) != 0)
@@ -82,6 +75,7 @@ int main(int argc, char *argv[])
     exit(FIFO_OPEN_ERR);
 
   int nBytes;
+  int sem_val;
   while (whileLoop  == -1) {
     tlv_request_t request;
 
@@ -101,14 +95,13 @@ int main(int argc, char *argv[])
 
     print_request(request);
     //log
-    smo = SYNC_OP_COND_WAIT;
+    
     sem_getvalue(&empty, &sem_val);
-    logSyncMechSem(slogFd, 0, smo, prole, getpid(), sem_val);
+    logSyncMechSem(slogFd, 0, SYNC_OP_COND_WAIT, SYNC_ROLE_PRODUCER, getpid(), sem_val);
     //ipc
     sem_wait(&empty);
     //log
-    smo = SYNC_OP_MUTEX_LOCK;
-    logSyncMech(slogFd, 0, smo, prole, getpid());
+    logSyncMech(slogFd, 0, SYNC_OP_MUTEX_LOCK, SYNC_ROLE_PRODUCER, getpid());
     //ipc
     pthread_mutex_lock(&mut);
     //critical region
@@ -116,14 +109,12 @@ int main(int argc, char *argv[])
     //ipc
     pthread_mutex_unlock(&mut);
     //log
-    smo = SYNC_OP_MUTEX_UNLOCK;
-    logSyncMech(slogFd, 0, smo, prole, getpid());
+    logSyncMech(slogFd, 0, SYNC_OP_MUTEX_UNLOCK, SYNC_ROLE_PRODUCER, getpid());
     //ipc
     sem_post(&full);
     //log
-    smo = SYNC_OP_SEM_POST;
     sem_getvalue(&full, &sem_val);
-    logSyncMechSem(slogFd, 0, smo, prole, getpid(), sem_val);
+    logSyncMechSem(slogFd, 0, SYNC_OP_SEM_POST, SYNC_ROLE_PRODUCER, getpid(), sem_val);
   }
   printf ("Break free!\n");
   fchmod (srvFifo, S_IRUSR | S_IRGRP | S_IROTH);
@@ -161,16 +152,15 @@ void *bank_office_process(void *arg)
     tlv_request_t request;
     tlv_reply_t reply;
     char USER_FIFO_PATH[USER_FIFO_PATH_LEN];
+    int sem_val;
 
     //log
-    smo = SYNC_OP_SEM_WAIT;
     sem_getvalue(&full, &sem_val);
-    logSyncMechSem(slogFd, index, smo, crole, getpid(), sem_val);
+    logSyncMechSem(slogFd, index, SYNC_OP_SEM_WAIT, SYNC_ROLE_CONSUMER, getpid(), sem_val);
     //1# IPC
     sem_wait(&full);
     //log
-    smo = SYNC_OP_MUTEX_LOCK;
-    logSyncMech(slogFd, index, smo, prole, getpid());
+    logSyncMech(slogFd, index, SYNC_OP_MUTEX_LOCK, SYNC_ROLE_PRODUCER, getpid());
     //ipc
     pthread_mutex_lock(&mut);
     //2#receive -- CRITICAL REGION
@@ -324,14 +314,12 @@ void *bank_office_process(void *arg)
     //3# IPC
     pthread_mutex_unlock(&mut);
     //log
-    smo = SYNC_OP_MUTEX_UNLOCK;
-    logSyncMech(slogFd, index, smo, crole, getpid());
+    logSyncMech(slogFd, index, SYNC_OP_MUTEX_UNLOCK, SYNC_ROLE_CONSUMER, getpid());
     //IPC
     sem_post(&empty);
     //log
-    smo = SYNC_OP_SEM_POST;
     sem_getvalue(&empty, &sem_val);
-    logSyncMechSem(slogFd, index, smo, crole, getpid(), sem_val);
+    logSyncMechSem(slogFd, index, SYNC_OP_SEM_POST, SYNC_ROLE_CONSUMER, getpid(), sem_val);
   }
 
   printf("thread #%ld!\n", pthread_self());
