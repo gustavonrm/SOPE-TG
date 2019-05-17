@@ -173,7 +173,11 @@ void *bank_office_process (void *arg) {
     request = queuePop ();
 
     delay (request);
-    logDelay (slogFd, index, request.value.header.op_delay_ms); //logSyncDelay()???
+    if(request.type == OP_SHUTDOWN){
+      logDelay (slogFd, index,request.value.header.op_delay_ms); 
+    }else{
+      logSyncDelay (slogFd, index,request.value.header.account_id,request.value.header.op_delay_ms); 
+    }
 
     sprintf (USER_FIFO_PATH, "%s%d", USER_FIFO_PATH_PREFIX, request.value.header.pid);
 
@@ -312,7 +316,7 @@ void *bank_office_process (void *arg) {
       }
 
       sem_getvalue (empty, &whileLoop);
-      reply = makeReply (&request, (uint32_t)whileLoop);
+      reply = makeReply (&request,  (uint32_t)whileLoop); //TODO mudar isto
       writeToFifo (reply, USER_FIFO_PATH);
 
       break;
