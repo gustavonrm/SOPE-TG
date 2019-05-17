@@ -183,7 +183,7 @@ void *bank_office_process (void *arg) {
       ret_code_t ret;
       uint32_t id = request.value.create.account_id;
 
-      ret = checkLogin (&(accounts[0]), request.value.header.password);
+      ret = checkLogin (&(accounts[request.value.header.account_id]), request.value.header.password);
       if (ret != RC_OK) {
         reply = makeErrorReply (&request, ret);
         writeToFifo (reply, USER_FIFO_PATH);
@@ -255,26 +255,28 @@ void *bank_office_process (void *arg) {
       ret = checkLogin (&(accounts[src_id]), request.value.header.password);
       if (ret != RC_OK) {
         reply = makeErrorReply (&request, ret);
+        reply.value.transfer.balance = accounts[request.value.header.account_id].balance;
         writeToFifo (reply, USER_FIFO_PATH);
         break;
       }
 
       if (request.value.header.account_id == ADMIN_ACCOUNT_ID) {
         reply = makeErrorReply (&request, RC_OP_NALLOW);
+        reply.value.transfer.balance = accounts[request.value.header.account_id].balance;
         writeToFifo (reply, USER_FIFO_PATH);
         break;
       }
 
       if (accounts[src_id].account_id != src_id || accounts[dest_id].account_id != dest_id) {
         reply = makeErrorReply (&request, RC_ID_NOT_FOUND);
-        reply.value.transfer.balance = request.value.transfer.amount;
+        reply.value.transfer.balance = accounts[request.value.header.account_id].balance;
         writeToFifo(reply, USER_FIFO_PATH);
         break;
       }
 
       if (src_id == dest_id) {
         reply = makeErrorReply (&request, RC_SAME_ID);
-        reply.value.transfer.balance = request.value.transfer.amount;
+        reply.value.transfer.balance = accounts[request.value.header.account_id].balance;
         writeToFifo (reply, USER_FIFO_PATH);
         break;
       }
@@ -282,6 +284,7 @@ void *bank_office_process (void *arg) {
       ret = transfer_between_accounts(&accounts[src_id], &accounts[dest_id], request.value.transfer.amount);
       if (ret != RC_OK) {
         reply = makeErrorReply(&request, ret);
+        reply.value.transfer.balance = accounts[request.value.header.account_id].balance;
         writeToFifo(reply, USER_FIFO_PATH);
         break;
       }
@@ -295,7 +298,7 @@ void *bank_office_process (void *arg) {
     {
       ret_code_t ret;
 
-      ret = checkLogin (&admin_account, request.value.header.password);
+      ret = checkLogin (&(accounts[request.value.header.account_id]), request.value.header.password);
       if (ret != RC_OK) {
         reply = makeErrorReply (&request, ret);
         writeToFifo (reply, USER_FIFO_PATH);

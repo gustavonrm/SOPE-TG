@@ -84,7 +84,7 @@ int main (int argc, char *argv[]) {
 
   if (unlink (USER_FIFO_PATH) != 0)
     exit (UNLINK_ERR);
-  
+
   return 0;
 }
 

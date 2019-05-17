@@ -6,34 +6,75 @@ int parse_input (tlv_request_t *request, char *argv[]) {
 
   value.header.pid = getpid ();
 
+  if (atoi(argv[1]) < 0 || atoi(argv[1]) > MAX_BANK_ACCOUNTS)
+    exit (ARG_ERR);
+
+  if (strlen (argv[2]) < MIN_PASSWORD_LEN || strlen (argv[2]) > MAX_PASSWORD_LEN)
+    exit (ARG_ERR);
+
+  if (atoi (argv[3]) < 0)
+    exit (ARG_ERR);
 
   value.header.account_id = (uint32_t)atoi (argv[1]);
   strcpy (value.header.password, argv[2]);
   value.header.op_delay_ms = (uint32_t)atoi (argv[3]);
 
   switch (atoi (argv[4])) {
-  case OP_CREATE_ACCOUNT:
+  case OP_CREATE_ACCOUNT: 
+  {
     type = OP_CREATE_ACCOUNT;
-    value.create.account_id = (uint32_t)atoi (strtok(argv[5], " "));
-    value.create.balance = (uint32_t)atoi (strtok(NULL, " "));
-    strcpy (value.create.password, strtok (NULL, " "));
+    int id = atoi (strtok(argv[5], " "));
+    if (id < 0 || id > MAX_BANK_ACCOUNTS)
+      exit (ARG_ERR);
+
+    uint32_t bal = (uint32_t)atoi (strtok(NULL, " "));
+    if (bal < MIN_BALANCE || bal > MAX_BALANCE)
+      exit (ARG_ERR);
+
+    char *pass = strtok (NULL, " ");
+    if (strlen (pass) < MIN_PASSWORD_LEN || strlen (pass) > MAX_PASSWORD_LEN)
+      exit (ARG_ERR);
+
+    value.create.account_id = (uint32_t)id;
+    value.create.balance = (uint32_t)bal;
+    strcpy (value.create.password, pass);
+
     break;
+  }
 
   case OP_BALANCE:
     type = OP_BALANCE;
+    if (strlen (argv[5]) != 0)
+      exit (ARG_ERR);
     break;
 
   case OP_TRANSFER:
+  {
     type = OP_TRANSFER;
-    value.transfer.account_id = (uint32_t)atoi (strtok(argv[5], " "));
-    value.transfer.amount = (uint32_t)atoi (strtok(NULL," "));
+    
+    int id = atoi (strtok(argv[5], " "));
+    if (id < 0 || id > MAX_BANK_ACCOUNTS)
+      exit (ARG_ERR);
+
+    int amount = atoi (strtok(NULL," "));
+    if (amount < 0)
+      exit (ARG_ERR);
+
+    value.transfer.account_id = (uint32_t)id;
+    value.transfer.amount = (uint32_t)amount;
+
     break;
+  }
 
   case OP_SHUTDOWN:
     type = OP_SHUTDOWN;
+    if (strlen (argv[5]) != 0)
+      exit (ARG_ERR);
+    
     break;
 
   default:
+    exit (ARG_ERR);
     break;
   }
 
