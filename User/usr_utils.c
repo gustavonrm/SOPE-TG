@@ -18,7 +18,7 @@ int parse_input (tlv_request_t *request, char *argv[]) {
   value.header.account_id = (uint32_t)atoi (argv[1]);
   strcpy (value.header.password, argv[2]);
   value.header.op_delay_ms = (uint32_t)atoi (argv[3]);
-
+  
   switch (atoi (argv[4])) {
   case OP_CREATE_ACCOUNT: 
   {
@@ -26,15 +26,15 @@ int parse_input (tlv_request_t *request, char *argv[]) {
     int id = atoi (strtok(argv[5], " "));
     if (id < 0 || id > MAX_BANK_ACCOUNTS)
       exit (ARG_ERR);
-
+    
     uint32_t bal = (uint32_t)atoi (strtok(NULL, " "));
     if (bal < MIN_BALANCE || bal > MAX_BALANCE)
       exit (ARG_ERR);
-
+    
     char *pass = strtok (NULL, " ");
-    if (strlen (pass) < MIN_PASSWORD_LEN || strlen (pass) > MAX_PASSWORD_LEN)
+    if (pass == NULL || strlen (pass) < MIN_PASSWORD_LEN || strlen (pass) > MAX_PASSWORD_LEN)
       exit (ARG_ERR);
-
+    
     value.create.account_id = (uint32_t)id;
     value.create.balance = (uint32_t)bal;
     strcpy (value.create.password, pass);

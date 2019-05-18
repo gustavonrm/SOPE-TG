@@ -28,7 +28,8 @@ pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 bank_account_t accounts[MAX_BANK_ACCOUNTS] = {};
 bank_account_t admin_account;
 
-int whileLoop = -1;
+int shutdownFlag = -1;
+int numOffices;
 
 int main (int argc, char *argv[]) {
   if (argc != 3) {
@@ -42,7 +43,7 @@ int main (int argc, char *argv[]) {
     exit (FILE_OPEN_ERR);
   }
 
-  int numOffices = atoi (argv[1]);
+  numOffices = atoi (argv[1]);
   if (numOffices > MAX_BANK_OFFICES)
     exit (INVALID_INPUT_ERR);
 
@@ -77,7 +78,8 @@ int main (int argc, char *argv[]) {
 
   int nBytes;
   int sem_val;
-  while (whileLoop == -1) {
+
+  while (shutdownFlag == -1) {
     tlv_request_t request;
 
     nBytes = read (srvFifo, &request, sizeof (op_type_t) + sizeof (uint32_t));
@@ -113,11 +115,13 @@ int main (int argc, char *argv[]) {
     logSyncMechSem (slogFd, 0, SYNC_OP_SEM_POST, SYNC_ROLE_PRODUCER, getpid (), sem_val);
   }
 
-  fchmod (srvFifo, S_IRUSR | S_IRGRP | S_IROTH);
-
   sem_getvalue (empty, &sem_val);
+
   while (sem_val != numOffices)
     sem_getvalue (empty, &sem_val);
+  
+  for (int i = 1; i < numOffices; i++)
+    pthread_join (offices[i], NULL);
 
   _cleanUp (srvFifo, slogFd, empty, full);
 
@@ -151,8 +155,12 @@ void _cleanUp (int srvFifo, int slogFd, sem_t *empty, sem_t *full) {
 
 //////////////////THREADS///////////////////////
 void *bank_office_process (void *arg) {
+  
   int index = (*(int *)arg);
-  while (1) {
+  pthread_detach (pthread_self ());
+
+
+  while (1) {    
     tlv_request_t request;
     tlv_reply_t reply;
     char USER_FIFO_PATH[USER_FIFO_PATH_LEN];
@@ -169,6 +177,9 @@ void *bank_office_process (void *arg) {
 
     logSyncMech (slogFd, index, SYNC_OP_MUTEX_LOCK, SYNC_ROLE_PRODUCER, getpid ());
     pthread_mutex_lock (&mut);
+
+    if (shutdownFlag == -1 && queueEmpty ())
+      pthread_exit (NULL);
 
     request = queuePop ();
 
@@ -315,8 +326,8 @@ void *bank_office_process (void *arg) {
         break;
       }
 
-      sem_getvalue (empty, &whileLoop);
-      reply = makeReply (&request,  (uint32_t)whileLoop); //TODO mudar isto
+      sem_getvalue (empty, &shutdownFlag);
+      reply = makeReply (&request,  numOffices - (uint32_t)shutdownFlag);
       writeToFifo (reply, USER_FIFO_PATH);
 
       break;
