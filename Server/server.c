@@ -28,7 +28,7 @@ pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 bank_account_t accounts[MAX_BANK_ACCOUNTS] = {};
 bank_account_t admin_account;
 
-int shutdownFlag = -1;
+shutdownFlag_t shutdownFlag = SF_OFF;
 int numOffices;
 
 int main (int argc, char *argv[]) {
@@ -78,13 +78,22 @@ int main (int argc, char *argv[]) {
 
   int nBytes;
   int sem_val;
+  
 
-  while (shutdownFlag == -1) {
+  while (1) {
+    if (shutdownFlag == SF_RD_MODE) {
+      fchmod (srvFifo, S_IRUSR | S_IRGRP | S_IROTH);
+      shutdownFlag = SF_ON;
+    }
+    
     tlv_request_t request;
 
     nBytes = read (srvFifo, &request, sizeof (op_type_t) + sizeof (uint32_t));
     if (nBytes == -1)
       exit (FIFO_READ_ERR);
+
+    if (nBytes == 0 && shutdownFlag == SF_ON)
+      break;
 
     if (nBytes == 0)
       continue;
@@ -92,6 +101,9 @@ int main (int argc, char *argv[]) {
     nBytes = read (srvFifo, &request.value, request.length);
     if (nBytes == -1)
       exit (FIFO_READ_ERR);
+
+    if (nBytes == 0 && shutdownFlag == SF_ON)
+      break;
 
     if (nBytes == 0)
       continue;
@@ -159,7 +171,6 @@ void *bank_office_process (void *arg) {
   int index = (*(int *)arg);
   pthread_detach (pthread_self ());
 
-
   while (1) {    
     tlv_request_t request;
     tlv_reply_t reply;
@@ -178,7 +189,7 @@ void *bank_office_process (void *arg) {
     logSyncMech (slogFd, index, SYNC_OP_MUTEX_LOCK, SYNC_ROLE_PRODUCER, getpid ());
     pthread_mutex_lock (&mut);
 
-    if (shutdownFlag == -1 && queueEmpty ())
+    if (shutdownFlag == SF_ON && queueEmpty ())
       pthread_exit (NULL);
 
     request = queuePop ();
@@ -325,10 +336,13 @@ void *bank_office_process (void *arg) {
         writeToFifo (reply, USER_FIFO_PATH);
         break;
       }
+      
+      int sem_val;
 
-      sem_getvalue (empty, &shutdownFlag);
-      reply = makeReply (&request,  numOffices - (uint32_t)shutdownFlag);
+      sem_getvalue (empty, &sem_val);
+      reply = makeReply (&request,  numOffices - (uint32_t)sem_val);
       writeToFifo (reply, USER_FIFO_PATH);
+      shutdownFlag = SF_RD_MODE;
 
       break;
     }

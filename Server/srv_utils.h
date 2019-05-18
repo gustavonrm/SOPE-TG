@@ -31,6 +31,12 @@ typedef struct queue {
   queue_el_t *tail;
 } queue_t;
 
+typedef enum shutdownFlag {
+  SF_OFF,       // server hasnt received shutdown from user
+  SF_RD_MODE,   // server has received and secure_srv must be in read only mode
+  SF_ON         // shutdown pre operations are done
+} shutdownFlag_t;
+
 void gen_salt (char *salt);
 
 void get_hash (char *str, char *hash);
