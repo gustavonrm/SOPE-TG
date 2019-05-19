@@ -52,10 +52,10 @@ int main (int argc, char *argv[]) {
 
   sem_t *full, *empty;
 
-  logSyncMechSem (slogFd, 0, SYNC_OP_SEM_INIT, SYNC_ROLE_PRODUCER, getpid (), 0);
+  logSyncMechSem (slogFd, 0, SYNC_OP_SEM_INIT, SYNC_ROLE_PRODUCER, 0, 0);
   full = sem_open (SEM_NAME_FULL, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP, 0);
 
-  logSyncMechSem (slogFd, 0, SYNC_OP_SEM_INIT, SYNC_ROLE_PRODUCER, getpid (), numOffices);
+  logSyncMechSem (slogFd, 0, SYNC_OP_SEM_INIT, SYNC_ROLE_PRODUCER, 0, numOffices);
   empty = sem_open (SEM_NAME_EMPTY, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP, numOffices);
 
   if (create_bank_account (&admin_account, ADMIN_ACCOUNT_ID, 0, argv[2]) != 0)
@@ -109,22 +109,22 @@ int main (int argc, char *argv[]) {
       continue;
 
     sem_getvalue (empty, &sem_val);
-    logSyncMechSem (slogFd, 0, SYNC_OP_COND_WAIT, SYNC_ROLE_PRODUCER, getpid (), sem_val);
+    logSyncMechSem (slogFd, 0, SYNC_OP_COND_WAIT, SYNC_ROLE_PRODUCER, 0, sem_val); // O
 
     sem_wait (empty);
 
-    logSyncMech (slogFd, 0, SYNC_OP_MUTEX_LOCK, SYNC_ROLE_PRODUCER, getpid ());
+    logSyncMech (slogFd, 0, SYNC_OP_MUTEX_LOCK, SYNC_ROLE_PRODUCER, 0); // 0
     pthread_mutex_lock (&mut);
 
     queuePush (request);
 
     pthread_mutex_unlock (&mut);
-    logSyncMech (slogFd, 0, SYNC_OP_MUTEX_UNLOCK, SYNC_ROLE_PRODUCER, getpid ());
+    logSyncMech (slogFd, 0, SYNC_OP_MUTEX_UNLOCK, SYNC_ROLE_PRODUCER, 0); // 0
 
     sem_post (full);
 
     sem_getvalue (full, &sem_val);
-    logSyncMechSem (slogFd, 0, SYNC_OP_SEM_POST, SYNC_ROLE_PRODUCER, getpid (), sem_val);
+    logSyncMechSem (slogFd, 0, SYNC_OP_SEM_POST, SYNC_ROLE_PRODUCER, 0, sem_val); // 0
   }
 
   sem_getvalue (empty, &sem_val);
@@ -182,11 +182,11 @@ void *bank_office_process (void *arg) {
     full = sem_open (SEM_NAME_FULL, O_RDWR);
 
     sem_getvalue (full, &sem_val);
-    logSyncMechSem (slogFd, index, SYNC_OP_SEM_WAIT, SYNC_ROLE_CONSUMER, getpid (), sem_val);
+    logSyncMechSem (slogFd, index, SYNC_OP_SEM_WAIT, SYNC_ROLE_CONSUMER, 0, sem_val);
 
     sem_wait (full);
 
-    logSyncMech (slogFd, index, SYNC_OP_MUTEX_LOCK, SYNC_ROLE_PRODUCER, getpid ());
+    logSyncMech (slogFd, index, SYNC_OP_MUTEX_LOCK, SYNC_ROLE_PRODUCER, 0);
     pthread_mutex_lock (&mut);
 
     if (shutdownFlag == SF_ON && queueEmpty ())
@@ -352,11 +352,11 @@ void *bank_office_process (void *arg) {
     }
 
     pthread_mutex_unlock (&mut);
-    logSyncMech(slogFd, index, SYNC_OP_MUTEX_UNLOCK, SYNC_ROLE_CONSUMER, getpid ());
+    logSyncMech(slogFd, index, SYNC_OP_MUTEX_UNLOCK, SYNC_ROLE_CONSUMER, request.value.header.account_id);
     
     sem_post (empty);
     
     sem_getvalue (empty, &sem_val);
-    logSyncMechSem (slogFd, index, SYNC_OP_SEM_POST, SYNC_ROLE_CONSUMER, getpid (), sem_val);
+    logSyncMechSem (slogFd, index, SYNC_OP_SEM_POST, SYNC_ROLE_CONSUMER, request.value.header.account_id, sem_val);
   }
 }
