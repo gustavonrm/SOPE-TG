@@ -9,10 +9,10 @@
 #include <semaphore.h>
 #include <errno.h>
 
-#include "constants.h"
-#include "error.h"
-#include "sope.h"
-#include "reply.h"
+#include "../Common/constants.h"
+#include "../Common/error.h"
+#include "../Common/sope.h"
+#include "../Common/reply.h"
 
 #include "operations.h"
 #include "srv_utils.h"
@@ -212,33 +212,33 @@ void *bank_office_process (void *arg) {
       ret = checkLogin (&(accounts[request.value.header.account_id]), request.value.header.password);
       if (ret != RC_OK) {
         reply = makeErrorReply (&request, ret);
-        srv_writeToFifo (reply, USER_FIFO_PATH);
+        writeToFifo (reply, USER_FIFO_PATH);
         break;
       }
 
       if (request.value.header.account_id != ADMIN_ACCOUNT_ID) {
         reply = makeErrorReply (&request, RC_OP_NALLOW);
-        srv_writeToFifo (reply, USER_FIFO_PATH);
+        writeToFifo (reply, USER_FIFO_PATH);
         break;
       }
 
       if (accounts[id].account_id == id) {
         reply = makeErrorReply (&request, RC_ID_IN_USE);
-        srv_writeToFifo (reply, USER_FIFO_PATH);
+        writeToFifo (reply, USER_FIFO_PATH);
         break;
       }
 
       ret = create_bank_account (&accounts[id], request.value.create.account_id, request.value.create.balance, request.value.create.password);
       if (ret != RC_OK) {
         reply = makeErrorReply (&request, ret);
-        srv_writeToFifo (reply, USER_FIFO_PATH);
+        writeToFifo (reply, USER_FIFO_PATH);
         break;
       }
 
       logAccountCreation (slogFd, request.value.create.account_id, &accounts[id]);
       
       reply = makeReply (&request, accounts[id].balance);
-      srv_writeToFifo (reply, USER_FIFO_PATH);
+      writeToFifo (reply, USER_FIFO_PATH);
       
       break;
     }
@@ -251,24 +251,24 @@ void *bank_office_process (void *arg) {
       ret = checkLogin (&(accounts[id]), request.value.header.password);
       if (ret != RC_OK) {
         reply = makeErrorReply (&request, ret);
-        srv_writeToFifo (reply, USER_FIFO_PATH);
+        writeToFifo (reply, USER_FIFO_PATH);
         break;
       }
 
       if (request.value.header.account_id == 0) {
         reply = makeErrorReply (&request, RC_OP_NALLOW);
-        srv_writeToFifo (reply, USER_FIFO_PATH);
+        writeToFifo (reply, USER_FIFO_PATH);
         break;
       }
 
       if (accounts[id].account_id == 0) {
         reply = makeErrorReply (&request, RC_ID_NOT_FOUND);
-        srv_writeToFifo (reply, USER_FIFO_PATH);
+        writeToFifo (reply, USER_FIFO_PATH);
         break;
       }
 
       reply = makeReply (&request, accounts[id].balance);
-      srv_writeToFifo (reply, USER_FIFO_PATH);
+      writeToFifo (reply, USER_FIFO_PATH);
       break;
     }
 
@@ -282,28 +282,28 @@ void *bank_office_process (void *arg) {
       if (ret != RC_OK) {
         reply = makeErrorReply (&request, ret);
         reply.value.transfer.balance = accounts[request.value.header.account_id].balance;
-        srv_writeToFifo (reply, USER_FIFO_PATH);
+        writeToFifo (reply, USER_FIFO_PATH);
         break;
       }
 
       if (request.value.header.account_id == ADMIN_ACCOUNT_ID) {
         reply = makeErrorReply (&request, RC_OP_NALLOW);
         reply.value.transfer.balance = accounts[request.value.header.account_id].balance;
-        srv_writeToFifo (reply, USER_FIFO_PATH);
+        writeToFifo (reply, USER_FIFO_PATH);
         break;
       }
 
       if (accounts[src_id].account_id != src_id || accounts[dest_id].account_id != dest_id) {
         reply = makeErrorReply (&request, RC_ID_NOT_FOUND);
         reply.value.transfer.balance = accounts[request.value.header.account_id].balance;
-        srv_writeToFifo(reply, USER_FIFO_PATH);
+        writeToFifo(reply, USER_FIFO_PATH);
         break;
       }
 
       if (src_id == dest_id) {
         reply = makeErrorReply (&request, RC_SAME_ID);
         reply.value.transfer.balance = accounts[request.value.header.account_id].balance;
-        srv_writeToFifo (reply, USER_FIFO_PATH);
+        writeToFifo (reply, USER_FIFO_PATH);
         break;
       }
       
@@ -311,12 +311,12 @@ void *bank_office_process (void *arg) {
       if (ret != RC_OK) {
         reply = makeErrorReply(&request, ret);
         reply.value.transfer.balance = accounts[request.value.header.account_id].balance;
-        srv_writeToFifo(reply, USER_FIFO_PATH);
+        writeToFifo(reply, USER_FIFO_PATH);
         break;
       }
 
       reply = makeReply (&request, accounts[src_id].balance);
-      srv_writeToFifo (reply, USER_FIFO_PATH);
+      writeToFifo (reply, USER_FIFO_PATH);
       break;
     }
 
@@ -327,13 +327,13 @@ void *bank_office_process (void *arg) {
       ret = checkLogin (&(accounts[request.value.header.account_id]), request.value.header.password);
       if (ret != RC_OK) {
         reply = makeErrorReply (&request, ret);
-        srv_writeToFifo (reply, USER_FIFO_PATH);
+        writeToFifo (reply, USER_FIFO_PATH);
         break;
       }
 
       if (request.value.header.account_id != ADMIN_ACCOUNT_ID) {
         reply = makeErrorReply (&request, RC_OP_NALLOW);
-        srv_writeToFifo (reply, USER_FIFO_PATH);
+        writeToFifo (reply, USER_FIFO_PATH);
         break;
       }
       
@@ -341,7 +341,7 @@ void *bank_office_process (void *arg) {
 
       sem_getvalue (empty, &sem_val);
       reply = makeReply (&request,  numOffices - (uint32_t)sem_val);
-      srv_writeToFifo (reply, USER_FIFO_PATH);
+      writeToFifo (reply, USER_FIFO_PATH);
       shutdownFlag = SF_RD_MODE;
 
       break;

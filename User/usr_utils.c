@@ -85,7 +85,16 @@ int parse_input (tlv_request_t *request, char *argv[]) {
   return 0;
 }
 
-ret_code_t usr_writeToFifo (tlv_request_t request) {
+void print_request(tlv_request_t request) {
+  printf ("acc id: %d\n", request.value.header.account_id);
+  printf ("pass: %s\n", request.value.header.password);
+  printf ("delay: %d\n", request.value.header.op_delay_ms);
+  printf ("aac id create: %d\n", request.value.create.account_id);
+  printf ("balance: %d\n", request.value.create.balance);
+  printf ("balance: %s\n", request.value.create.password);
+}
+
+ret_code_t writeToFifo (tlv_request_t request) {
   int srvFifo = open (SERVER_FIFO_PATH, O_WRONLY | O_NONBLOCK);
   if (srvFifo == -1)
     return RC_SRV_DOWN;
@@ -99,7 +108,7 @@ ret_code_t usr_writeToFifo (tlv_request_t request) {
   return RC_OK;
 }
 
-tlv_reply_t usr_readFifo (int tmpFifo) {
+tlv_reply_t readFifo (int tmpFifo) {
   int nBytes = 0;
   tlv_reply_t reply;
 

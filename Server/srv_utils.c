@@ -56,7 +56,7 @@ void get_hash (char *str, char *hash) {
   strncpy (hash, buf, 64);
 }
 
-int srv_readFifo (int srvFifo, sem_t full, sem_t empty, pthread_mutex_t mut) {
+int readFifo (int srvFifo, sem_t full, sem_t empty, pthread_mutex_t mut) {
   int nBytes = 0;
 
   while (1) {
@@ -136,7 +136,7 @@ int queueEmpty () {
   return requestQueue.head == NULL;
 }
 
-int srv_writeToFifo (tlv_reply_t reply, char *path) {
+int writeToFifo (tlv_reply_t reply, char *path) {
   int tmpFifo = open (path, O_WRONLY | O_NONBLOCK);
   if (tmpFifo == -1)
     return FIFO_OPEN_ERR;
@@ -187,4 +187,13 @@ ret_code_t checkLogin (bank_account_t *account, char password[]) {
     return RC_LOGIN_FAIL;
   
   return RC_OK;
+}
+
+void print_request (tlv_request_t request) {
+  printf ("acc id: %d\n", request.value.header.account_id);
+  printf ("pass: %s\n", request.value.header.password);
+  printf ("delay: %d\n", request.value.header.op_delay_ms);
+  printf ("aac id create: %d\n", request.value.create.account_id);
+  printf ("balance: %d\n", request.value.create.balance);
+  printf ("balance: %s\n", request.value.create.password);
 }
