@@ -9,15 +9,15 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "../Common/types.h"
-#include "../Common/sope.h"
-#include "../Common/error.h"
+#include "types.h"
+#include "sope.h"
+#include "error.h"
 
 int parse_input (tlv_request_t *request, char *argv[]);
 
-ret_code_t writeToFifo (tlv_request_t request);
+ret_code_t usr_writeToFifo (tlv_request_t request);
 
-tlv_reply_t readFifo (int tmpFifo);
+tlv_reply_t usr_readFifo (int tmpFifo);
 
 int verifyIfInt(char* string);
 

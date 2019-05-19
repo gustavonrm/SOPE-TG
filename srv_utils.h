@@ -13,9 +13,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "../Common/constants.h"
-#include "../Common/types.h"
-#include "../Common/error.h"
+#include "constants.h"
+#include "types.h"
+#include "error.h"
 
 #define SEM_NAME_EMPTY  "/sem_empty"
 #define SEM_NAME_FULL   "/sem_full"
@@ -41,9 +41,9 @@ void gen_salt (char *salt);
 
 void get_hash (char *str, char *hash);
 
-int readFifo (int srvFifo,sem_t full, sem_t empty, pthread_mutex_t mut);
+int srv_readFifo (int srvFifo,sem_t full, sem_t empty, pthread_mutex_t mut);
 
-int writeToFifo (tlv_reply_t reply,char *path);
+int srv_writeToFifo (tlv_reply_t reply,char *path);
 
 void queuePush (tlv_request_t request);
 
@@ -56,6 +56,4 @@ int queueEmpty ();
 void delay (tlv_request_t request);
 
 ret_code_t checkLogin (bank_account_t *account, char password[]);
-
-void print_request (tlv_request_t request);
 

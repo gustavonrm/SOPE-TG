@@ -9,11 +9,11 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include "../Common/constants.h"
-#include "../Common/sope.h"
-#include "../Common/error.h"
-#include "../Common/types.h"
-#include "../Common/reply.h"
+#include "constants.h"
+#include "sope.h"
+#include "error.h"
+#include "types.h"
+#include "reply.h"
 
 #include "usr_utils.h"
 
@@ -50,7 +50,7 @@ int main (int argc, char *argv[]) {
     exit (FILE_OPEN_ERR);
   }
 
-  ret = writeToFifo (request);
+  ret = usr_writeToFifo (request);
   if (ret != RC_OK){
     reply = makeErrorReply (&request, ret);
     logReply (ulogFd, getpid (), &reply);
@@ -73,7 +73,7 @@ int main (int argc, char *argv[]) {
     exit (FIFO_OPEN_ERR);
   }
 
-  reply = readFifo (usrFIFO);
+  reply = usr_readFifo (usrFIFO);
   logReply (ulogFd, getpid (), &reply);
 
   if (close (ulogFd) != 0)

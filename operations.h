@@ -4,9 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../Common/types.h"
-#include "../Common/error.h"
-#include "../Common/sope.h"
+#include "types.h"
+#include "error.h"
+#include "sope.h"
 
 #include "srv_utils.h"
 
