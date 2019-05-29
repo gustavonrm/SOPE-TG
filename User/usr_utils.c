@@ -18,6 +18,8 @@ int parse_input (tlv_request_t *request, char *argv[]) {
   value.header.account_id = (uint32_t)atoi (argv[1]);
   strcpy (value.header.password, argv[2]);
   value.header.op_delay_ms = (uint32_t)atoi (argv[3]);
+
+  request->length = sizeof(req_header_t);
   
   switch (atoi (argv[4])) {
   case OP_CREATE_ACCOUNT: 
@@ -38,6 +40,7 @@ int parse_input (tlv_request_t *request, char *argv[]) {
     value.create.account_id = (uint32_t)id;
     value.create.balance = (uint32_t)bal;
     strcpy (value.create.password, pass);
+    request->length += sizeof (req_create_account_t);
 
     break;
   }
@@ -62,6 +65,7 @@ int parse_input (tlv_request_t *request, char *argv[]) {
 
     value.transfer.account_id = (uint32_t)id;
     value.transfer.amount = (uint32_t)amount;
+    request->length += sizeof (req_transfer_t);
 
     break;
   }
@@ -80,7 +84,6 @@ int parse_input (tlv_request_t *request, char *argv[]) {
 
   request->type = type;
   request->value = value;
-  request->length = sizeof (request->value);
 
   return 0;
 }
@@ -111,11 +114,9 @@ ret_code_t writeToFifo (tlv_request_t request) {
 tlv_reply_t readFifo (int tmpFifo) {
   int nBytes = 0;
   tlv_reply_t reply;
-
   nBytes = read (tmpFifo, &reply, sizeof (op_type_t) + sizeof (uint32_t));
   if (nBytes == -1)
     exit(FIFO_READ_ERR);
-
   nBytes = read (tmpFifo, &reply.value, reply.length);
   if (nBytes == -1)
     exit (FIFO_READ_ERR);
