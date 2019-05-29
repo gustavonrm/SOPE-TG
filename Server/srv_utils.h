@@ -9,6 +9,7 @@
 #include <time.h>
 #include <semaphore.h>
 #include <fcntl.h>
+#include <ctype.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -41,7 +42,7 @@ void gen_salt (char *salt);
 
 void get_hash (char *str, char *hash);
 
-int readFifo (int srvFifo,sem_t full, sem_t empty, pthread_mutex_t mut);
+//int readFifo (int srvFifo,sem_t full, sem_t empty, pthread_mutex_t mut);
 
 int writeToFifo (tlv_reply_t reply,char *path);
 
@@ -56,6 +57,8 @@ int queueEmpty ();
 void delay (tlv_request_t request);
 
 ret_code_t checkLogin (bank_account_t *account, char password[]);
+
+int verifyIfInt(char* string);
 
 void print_request (tlv_request_t request);
 
