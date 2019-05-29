@@ -41,7 +41,8 @@ void gen_salt (char *salt);
 
 void get_hash (char *str, char *hash);
 
-int readFifo (int srvFifo,sem_t full, sem_t empty, pthread_mutex_t mut);
+//isto n ta a ser usado pa nada 
+/*int readFifo (int srvFifo,sem_t full, sem_t empty, pthread_mutex_t mut);*/
 
 int writeToFifo (tlv_reply_t reply,char *path);
 

@@ -55,7 +55,7 @@ void get_hash (char *str, char *hash) {
   
   strncpy (hash, buf, 64);
 }
-
+/*
 int readFifo (int srvFifo, sem_t full, sem_t empty, pthread_mutex_t mut) {
   int nBytes = 0;
 
@@ -86,7 +86,7 @@ int readFifo (int srvFifo, sem_t full, sem_t empty, pthread_mutex_t mut) {
   }
 
   return 0;
-}
+}*/
 
 void queuePush (tlv_request_t request) {
   queue_el_t *new;
