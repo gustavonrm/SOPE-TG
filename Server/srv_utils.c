@@ -70,7 +70,7 @@ void get_hash (char *str, char *hash) {
   strncpy (hash, buf, 64);
 }*/
 
-int readFifo (int srvFifo, sem_t full, sem_t empty, pthread_mutex_t mut) {
+/*int readFifo (int srvFifo, sem_t full, sem_t empty, pthread_mutex_t mut) {
   int nBytes = 0;
 
   while (1) {
@@ -100,7 +100,7 @@ int readFifo (int srvFifo, sem_t full, sem_t empty, pthread_mutex_t mut) {
   }
 
   return 0;
-}
+}*/
 
 void queuePush (tlv_request_t request) {
   queue_el_t *new;
@@ -201,6 +201,14 @@ ret_code_t checkLogin (bank_account_t *account, char password[]) {
     return RC_LOGIN_FAIL;
   
   return RC_OK;
+}
+
+int verifyIfInt(char* string){
+  for (unsigned int i=0; i<strlen(string); i++){
+    if(isdigit(string[i]))
+      return -1;
+  }
+  return 0;
 }
 
 void print_request (tlv_request_t request) {

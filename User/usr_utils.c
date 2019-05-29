@@ -127,13 +127,6 @@ tlv_reply_t readFifo (int tmpFifo) {
   return reply;
 }
 
-int verifyIfInt(char* string){
-  for (unsigned int i=0; i<strlen(string); i++){
-    if(!isdigit(string[i]))
-      return -1;
-  }
-  return 0;
-}
 
 void print_reply (tlv_reply_t reply) {
   printf ("acc id: %d\n", reply.value.header.account_id);

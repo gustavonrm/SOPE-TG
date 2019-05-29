@@ -43,6 +43,9 @@ int main (int argc, char *argv[]) {
     exit (FILE_OPEN_ERR);
   }
 
+  if(!verifyIfInt(argv[1]))
+    exit (INVALID_INPUT_ERR);
+
   numOffices = atoi (argv[1]);
   if (numOffices > MAX_BANK_OFFICES)
     exit (INVALID_INPUT_ERR);
@@ -109,7 +112,7 @@ int main (int argc, char *argv[]) {
       continue;
 
     sem_getvalue (empty, &sem_val);
-    logSyncMechSem (slogFd, 0, SYNC_OP_COND_WAIT, SYNC_ROLE_PRODUCER, request.value.header.pid, sem_val); 
+    logSyncMechSem (slogFd, 0, SYNC_OP_SEM_WAIT, SYNC_ROLE_PRODUCER, request.value.header.pid, sem_val); 
 
     sem_wait (empty);
 
