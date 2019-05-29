@@ -1,7 +1,7 @@
 #include "operations.h"
 
 ret_code_t create_bank_account (bank_account_t *acc, uint32_t id, uint32_t balance, char password[]) {
-  char saltedPass[SALT_LEN + strlen (password) + 1];
+  char saltedPass[SALT_LEN + MAX_PASSWORD_LEN + 1];
 
   acc->account_id = id;
   acc->balance = balance;
@@ -9,12 +9,11 @@ ret_code_t create_bank_account (bank_account_t *acc, uint32_t id, uint32_t balan
   char salt[SALT_LEN + 1];
   gen_salt (salt);
   sprintf (acc->salt, "%s", salt);
-
+  
   strcpy (saltedPass, acc->salt);
   strcat (saltedPass, password);
   
   get_hash (saltedPass, acc->hash);
-  
   return RC_OK;
 }
 

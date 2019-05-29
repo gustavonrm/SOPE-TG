@@ -17,6 +17,20 @@ void gen_salt (char *salt) {
 }
 
 void get_hash (char *str, char *hash) {
+  char command[MAX_PASSWORD_LEN + HASH_LEN + 24];
+  char buf[HASH_LEN +1];
+
+  sprintf (command, "echo -n %s | sha256sum", str);
+
+  FILE *sha_proc = popen (command, "r");
+  
+  if (fgets (buf, HASH_LEN +1, sha_proc) != NULL)
+    pclose(sha_proc);
+  
+  strncpy (hash, buf, 64);
+}
+
+/* void get_hash (char *str, char *hash) {
   int pipefd[2];
   int pid;
   char buf[64 + 1];
@@ -54,7 +68,7 @@ void get_hash (char *str, char *hash) {
   }
   
   strncpy (hash, buf, 64);
-}
+}*/
 
 int readFifo (int srvFifo, sem_t full, sem_t empty, pthread_mutex_t mut) {
   int nBytes = 0;
