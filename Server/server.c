@@ -17,7 +17,7 @@
 #include "operations.h"
 #include "srv_utils.h"
 
-void _cleanUp(int srvFifo, int slogFd, sem_t *empty, sem_t *full);
+void _cleanUp(int srvFifo, int slogFd);
 void *bank_office_process(void *arg);
 
 ////////GLOBAL/////////
@@ -31,6 +31,8 @@ bank_account_t admin_account;
 
 shutdownFlag_t shutdownFlag = SF_OFF;
 int numOffices;
+
+static sem_t full, empty;
 
 int main (int argc, char *argv[]) {
   if (argc != 3) {
@@ -54,13 +56,11 @@ int main (int argc, char *argv[]) {
   pthread_t offices[numOffices];
   offices[0] = pthread_self ();
 
-  sem_t *full, *empty;
-
   logSyncMechSem (slogFd, 0, SYNC_OP_SEM_INIT, SYNC_ROLE_PRODUCER, 0, 0);
-  full = sem_open (SEM_NAME_FULL, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP, 0);
-
+  sem_init (&full, 0600, 0);
+  
   logSyncMechSem (slogFd, 0, SYNC_OP_SEM_INIT, SYNC_ROLE_PRODUCER, 0, numOffices);
-  empty = sem_open (SEM_NAME_EMPTY, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP, numOffices);
+  sem_init (&empty, 0600, numOffices);
 
   if (create_bank_account (&admin_account, ADMIN_ACCOUNT_ID, 0, argv[2], acc_mut) != 0)
     return ACC_CREATE_ERR;
@@ -111,10 +111,10 @@ int main (int argc, char *argv[]) {
     if (nBytes == 0)
       continue;
 
-    sem_getvalue (empty, &sem_val);
+    sem_getvalue (&empty, &sem_val);
     logSyncMechSem (slogFd, 0, SYNC_OP_SEM_WAIT, SYNC_ROLE_PRODUCER, request.value.header.pid, sem_val); 
 
-    sem_wait (empty);
+    sem_wait (&empty);
 
     logSyncMech (slogFd, 0, SYNC_OP_MUTEX_LOCK, SYNC_ROLE_PRODUCER, request.value.header.pid); 
     pthread_mutex_lock (&mut);
@@ -124,25 +124,26 @@ int main (int argc, char *argv[]) {
     pthread_mutex_unlock (&mut);
     logSyncMech (slogFd, 0, SYNC_OP_MUTEX_UNLOCK, SYNC_ROLE_PRODUCER, request.value.header.pid); 
 
-    sem_post (full);
+    sem_post (&full);
 
-    sem_getvalue (full, &sem_val);
+    sem_getvalue (&full, &sem_val);
     logSyncMechSem (slogFd, 0, SYNC_OP_SEM_POST, SYNC_ROLE_PRODUCER, request.value.header.pid, sem_val); 
   }
 
-  sem_getvalue (empty, &sem_val);
+  sem_getvalue (&empty, &sem_val);
+
   while (sem_val != numOffices)
-    sem_getvalue (empty, &sem_val);
+    sem_getvalue (&empty, &sem_val);
   
   for (int i = 1; i < numOffices; i++)
     pthread_join (offices[i], NULL);
 
-  _cleanUp (srvFifo, slogFd, empty, full);
+  _cleanUp (srvFifo, slogFd);
 
   return 0;
 }
 
-void _cleanUp (int srvFifo, int slogFd, sem_t *empty, sem_t *full) {
+void _cleanUp (int srvFifo, int slogFd) {
   if (close (srvFifo))
     perror (strerror (errno));
 
@@ -152,16 +153,10 @@ void _cleanUp (int srvFifo, int slogFd, sem_t *empty, sem_t *full) {
   if (close (slogFd) != 0)
     perror (strerror (errno));
 
-  if (sem_close (empty) != 0)
+  if (sem_destroy (&empty) != 0)
     perror (strerror (errno));
 
-  if (sem_close (full) != 0)
-    perror (strerror (errno));
-
-  if (sem_unlink (SEM_NAME_EMPTY) != 0)
-    perror (strerror (errno));
-
-  if (sem_unlink (SEM_NAME_FULL) != 0)
+  if (sem_destroy (&full) != 0)
     perror (strerror (errno));
 
   pthread_mutex_destroy (&mut);
@@ -183,15 +178,11 @@ void *bank_office_process (void *arg) {
     tlv_reply_t reply;
     char USER_FIFO_PATH[USER_FIFO_PATH_LEN];
     int sem_val;
-    sem_t *full, *empty;
 
-    empty = sem_open (SEM_NAME_EMPTY, O_RDWR);
-    full = sem_open (SEM_NAME_FULL, O_RDWR);
-
-    sem_getvalue (full, &sem_val);
+    sem_getvalue (&full, &sem_val);
     logSyncMechSem (slogFd, index, SYNC_OP_SEM_WAIT, SYNC_ROLE_CONSUMER,  0, sem_val);//0
 
-    sem_wait (full);
+    sem_wait (&full);
 
     logSyncMech (slogFd, index, SYNC_OP_MUTEX_LOCK, SYNC_ROLE_PRODUCER, 0); //0
     pthread_mutex_lock (&mut);
@@ -374,7 +365,7 @@ void *bank_office_process (void *arg) {
 
       int sem_val;
 
-      sem_getvalue (full, &sem_val);
+      sem_getvalue (&full, &sem_val);
       reply = makeReply (&request, sem_val);
       writeToFifo (reply, USER_FIFO_PATH);
       shutdownFlag = SF_RD_MODE;
@@ -392,9 +383,9 @@ void *bank_office_process (void *arg) {
     pthread_mutex_unlock (&mut);
     logSyncMech(slogFd, index, SYNC_OP_MUTEX_UNLOCK, SYNC_ROLE_CONSUMER, request.value.header.pid);
     
-    sem_post (empty);
+    sem_post (&empty);
     
-    sem_getvalue (empty, &sem_val);
+    sem_getvalue (&empty, &sem_val);
     logSyncMechSem (slogFd, index, SYNC_OP_SEM_POST, SYNC_ROLE_CONSUMER, request.value.header.pid, sem_val);
   }
 }
