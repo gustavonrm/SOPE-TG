@@ -1,6 +1,6 @@
 #include "operations.h"
 
-ret_code_t create_bank_account (bank_account_t *acc, uint32_t id, uint32_t balance, char password[]) {
+ret_code_t create_bank_account (bank_account_t *acc, uint32_t id, uint32_t balance, char password[], pthread_mutex_t *acc_mut) {
   char saltedPass[SALT_LEN + MAX_PASSWORD_LEN + 1];
 
   acc->account_id = id;
@@ -14,6 +14,10 @@ ret_code_t create_bank_account (bank_account_t *acc, uint32_t id, uint32_t balan
   strcat (saltedPass, password);
   
   get_hash (saltedPass, acc->hash);
+
+  pthread_mutex_t new_mut = PTHREAD_MUTEX_INITIALIZER;
+  acc_mut[id] = new_mut;
+
   return RC_OK;
 }
 

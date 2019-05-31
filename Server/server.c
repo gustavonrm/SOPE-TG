@@ -25,6 +25,7 @@ int slogFd;
 
 pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 
+pthread_mutex_t acc_mut[MAX_BANK_ACCOUNTS] = {};
 bank_account_t accounts[MAX_BANK_ACCOUNTS] = {};
 bank_account_t admin_account;
 
@@ -61,7 +62,7 @@ int main (int argc, char *argv[]) {
   logSyncMechSem (slogFd, 0, SYNC_OP_SEM_INIT, SYNC_ROLE_PRODUCER, 0, numOffices);
   empty = sem_open (SEM_NAME_EMPTY, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP, numOffices);
 
-  if (create_bank_account (&admin_account, ADMIN_ACCOUNT_ID, 0, argv[2]) != 0)
+  if (create_bank_account (&admin_account, ADMIN_ACCOUNT_ID, 0, argv[2], acc_mut) != 0)
     return ACC_CREATE_ERR;
 
   accounts[0] = admin_account;
@@ -212,6 +213,9 @@ void *bank_office_process (void *arg) {
       ret_code_t ret;
       uint32_t id = request.value.create.account_id;
 
+      logSyncMech (slogFd, index, SYNC_OP_MUTEX_LOCK, SYNC_ROLE_ACCOUNT, id);
+      // pthread_mutex_lock (&acc_mut[id]);
+
       ret = checkLogin (&(accounts[request.value.header.account_id]), request.value.header.password);
       if (ret != RC_OK) {
         reply = makeErrorReply (&request, ret);
@@ -231,7 +235,7 @@ void *bank_office_process (void *arg) {
         break;
       }
 
-      ret = create_bank_account (&accounts[id], request.value.create.account_id, request.value.create.balance, request.value.create.password);
+      ret = create_bank_account (&accounts[id], request.value.create.account_id, request.value.create.balance, request.value.create.password, acc_mut);
       if (ret != RC_OK) {
         reply = makeErrorReply (&request, ret);
         writeToFifo (reply, USER_FIFO_PATH);
@@ -242,6 +246,9 @@ void *bank_office_process (void *arg) {
       
       reply = makeReply (&request, accounts[id].balance);
       writeToFifo (reply, USER_FIFO_PATH);
+
+      //pthread_mutex_unlock (&acc_mut[id]);
+      logSyncMech (slogFd, index, SYNC_OP_MUTEX_UNLOCK, SYNC_ROLE_ACCOUNT, id);
       
       break;
     }
@@ -250,6 +257,9 @@ void *bank_office_process (void *arg) {
     {
       ret_code_t ret;
       uint32_t id = request.value.header.account_id;
+
+      logSyncMech (slogFd, index, SYNC_OP_MUTEX_UNLOCK, SYNC_ROLE_ACCOUNT, id);
+      // pthread_mutex_lock (&acc_mut[id]);
 
       ret = checkLogin (&(accounts[id]), request.value.header.password);
       if (ret != RC_OK) {
@@ -272,6 +282,10 @@ void *bank_office_process (void *arg) {
 
       reply = makeReply (&request, accounts[id].balance);
       writeToFifo (reply, USER_FIFO_PATH);
+
+      // pthread_mutex_unlock (&acc_mut[id]);
+      logSyncMech (slogFd, index, SYNC_OP_MUTEX_UNLOCK, SYNC_ROLE_ACCOUNT, id);
+
       break;
     }
 
@@ -280,6 +294,11 @@ void *bank_office_process (void *arg) {
       ret_code_t ret;
       uint32_t src_id = request.value.header.account_id;
       uint32_t dest_id = request.value.transfer.account_id;
+
+      logSyncMech (slogFd, index, SYNC_OP_MUTEX_LOCK, SYNC_ROLE_ACCOUNT, src_id);
+      // pthread_mutex_lock (&acc_mut[src_id]);
+      logSyncMech (slogFd, index, SYNC_OP_MUTEX_UNLOCK, SYNC_ROLE_ACCOUNT,dest_id);
+      // pthread_mutex_unlock (&acc_mut[dest_id]);
 
       ret = checkLogin (&(accounts[src_id]), request.value.header.password);
       if (ret != RC_OK) {
@@ -310,7 +329,8 @@ void *bank_office_process (void *arg) {
         break;
       }
       
-      ret = transfer_between_accounts(&accounts[src_id], &accounts[dest_id], request.value.transfer.amount);
+      ret = transfer_between_accounts(&
+      accounts[src_id], &accounts[dest_id], request.value.transfer.amount);
       if (ret != RC_OK) {
         reply = makeErrorReply(&request, ret);
         reply.value.transfer.balance = accounts[request.value.header.account_id].balance;
@@ -320,12 +340,22 @@ void *bank_office_process (void *arg) {
 
       reply = makeReply (&request, accounts[src_id].balance);
       writeToFifo (reply, USER_FIFO_PATH);
+
+      logSyncMech (slogFd, index, SYNC_OP_MUTEX_UNLOCK, SYNC_ROLE_ACCOUNT, src_id);
+      pthread_mutex_unlock (&acc_mut[src_id]);
+      logSyncMech (slogFd, index, SYNC_OP_MUTEX_UNLOCK, SYNC_ROLE_ACCOUNT, dest_id);
+      pthread_mutex_unlock (&acc_mut[dest_id]);
+
       break;
     }
 
     case OP_SHUTDOWN:
     {
       ret_code_t ret;
+      uint32_t id = request.value.header.account_id;
+
+      logSyncMech (slogFd, index, SYNC_OP_MUTEX_LOCK, SYNC_ROLE_ACCOUNT, id);
+      // pthread_mutex_lock (&acc_mut[id]);
 
       ret = checkLogin (&(accounts[request.value.header.account_id]), request.value.header.password);
       if (ret != RC_OK) {
@@ -346,6 +376,9 @@ void *bank_office_process (void *arg) {
       reply = makeReply (&request,  numOffices - (uint32_t)sem_val);
       writeToFifo (reply, USER_FIFO_PATH);
       shutdownFlag = SF_RD_MODE;
+
+      logSyncMech (slogFd, index, SYNC_OP_MUTEX_UNLOCK, SYNC_ROLE_ACCOUNT, id);
+      // pthread_mutex_unlock (&acc_mut[id]);
 
       break;
     }
