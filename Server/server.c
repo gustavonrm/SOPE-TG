@@ -45,14 +45,16 @@ int main (int argc, char *argv[]) {
     exit (FILE_OPEN_ERR);
   }
 
-  if(!verifyIfInt(argv[1]) || strlen(argv[1]) < MIN_PASSWORD_LEN || strlen(argv[1]) > MAX_PASSWORD_LEN)
+  if(!verifyIfInt(argv[1]) || strlen(argv[1]) <= 0 || strlen(argv[1]) > MAX_BANK_OFFICES)
     exit (INVALID_INPUT_ERR);
 
-  printf("%s\n", argv[1]);
   numOffices = atoi (argv[1]);
-  printf("%d\n", numOffices);
+
   if (numOffices > MAX_BANK_OFFICES || numOffices <= 0)
     exit (INVALID_INPUT_ERR);
+
+  if (strlen(argv[2]) < MIN_PASSWORD_LEN || strlen(argv[2]) > MAX_PASSWORD_LEN)
+    exit(INVALID_INPUT_ERR);
 
   pthread_t offices[numOffices];
   offices[0] = pthread_self ();
