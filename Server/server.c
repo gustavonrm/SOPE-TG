@@ -21,17 +21,16 @@ void _cleanUp(int srvFifo, int slogFd);
 void *bank_office_process(void *arg);
 
 ////////GLOBAL/////////
-int slogFd;
+static int slogFd;
 
-pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 
-pthread_mutex_t acc_mut[MAX_BANK_ACCOUNTS] = {};
-bank_account_t accounts[MAX_BANK_ACCOUNTS] = {};
-bank_account_t admin_account;
+static pthread_mutex_t acc_mut[MAX_BANK_ACCOUNTS] = {};
+static bank_account_t accounts[MAX_BANK_ACCOUNTS] = {};
+static bank_account_t admin_account;
 
-shutdownFlag_t shutdownFlag = SF_OFF;
-int numOffices;
-
+static shutdownFlag_t shutdownFlag = SF_OFF;
+static int numOffices;
 static sem_t full, empty;
 
 int main (int argc, char *argv[]) {
@@ -46,11 +45,13 @@ int main (int argc, char *argv[]) {
     exit (FILE_OPEN_ERR);
   }
 
-  if(!verifyIfInt(argv[1]))
+  if(!verifyIfInt(argv[1]) || strlen(argv[1]) < MIN_PASSWORD_LEN || strlen(argv[1]) > MAX_PASSWORD_LEN)
     exit (INVALID_INPUT_ERR);
 
+  printf("%s\n", argv[1]);
   numOffices = atoi (argv[1]);
-  if (numOffices > MAX_BANK_OFFICES)
+  printf("%d\n", numOffices);
+  if (numOffices > MAX_BANK_OFFICES || numOffices <= 0)
     exit (INVALID_INPUT_ERR);
 
   pthread_t offices[numOffices];

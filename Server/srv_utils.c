@@ -204,11 +204,10 @@ ret_code_t checkLogin (bank_account_t *account, char password[]) {
 }
 
 int verifyIfInt(char* string){
-  for (unsigned int i=0; i<strlen(string); i++){
-    if(isdigit(string[i]))
-      return -1;
+  while (*string){
+    if (isdigit(*string++) == 0) return 0;
   }
-  return 0;
+  return 1;
 }
 
 void print_request (tlv_request_t request) {
