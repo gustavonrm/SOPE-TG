@@ -347,6 +347,9 @@ void *bank_office_process (void *arg) {
 
     case OP_SHUTDOWN:
     {
+      if (shutdownFlag == SF_ON || shutdownFlag == SF_RD_MODE)
+        break;
+
       ret_code_t ret;
       uint32_t id = request.value.header.account_id;
 
